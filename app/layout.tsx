@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Phòng khám Yasoco",
-  description: "Phòng khám Yasoco - Nơi chăm sóc sức khỏe toàn diện",
+  title: "Phòng khám Yasoco | Chuyên khoa nhi",
+  description: "Phòng khám Yasoco - Nơi chăm sóc sức khỏe toàn diện cho trẻ em.",
 };
 
 export default function RootLayout({
