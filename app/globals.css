@@ -120,3 +120,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+::selection {
+  background: #A6CF52;
+}
