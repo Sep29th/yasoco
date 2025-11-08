@@ -1,25 +1,17 @@
-import Link from "next/link";
+import { NavLinkClient } from "./nav-link-client";
 
 export function NavLink({
   href,
   icon,
   label,
+  subLinks,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
+  subLinks?: { href: string; label: string }[];
 }) {
   return (
-    <Link
-      href={href}
-      className="group flex flex-col items-center transition-all duration-200 hover:scale-110"
-    >
-      <div className="text-gray-600 group-hover:text-[#A6CF52] transition-colors">
-        {icon}
-      </div>
-      <span className="text-sm font-medium text-gray-600 group-hover:text-[#A6CF52] transition-colors mt-1">
-        {label}
-      </span>
-    </Link>
+    <NavLinkClient href={href} icon={icon} label={label} subLinks={subLinks} />
   );
 }
