@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Phone, CalendarHeart, ArrowUp, MessageCircle } from "lucide-react";
+import { Phone, CalendarHeart, ArrowUp } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function FloatingButtons() {
   const [showScroll, setShowScroll] = useState(false);
@@ -20,7 +21,7 @@ export default function FloatingButtons() {
   };
 
   const buttonBase =
-    "flex items-center justify-center gap-2 shadow-lg transition-transform duration-300 hover:scale-110 text-white font-medium";
+    "flex items-center justify-start gap-2 shadow-lg transition-transform duration-300 hover:scale-110 text-white font-medium";
 
   return (
     <div className="fixed bottom-6 right-4 flex flex-col gap-3 z-50">
@@ -55,7 +56,13 @@ export default function FloatingButtons() {
         className={`${buttonBase} bg-blue-500 hover:bg-blue-600 
         w-12 h-12 sm:w-auto sm:h-auto sm:px-5 sm:py-3 rounded-full`}
       >
-        <MessageCircle className="w-5 h-5" />
+        <Image
+          alt='Zalo'
+          width={20}
+          height={20}
+          className="w-5 h-5"
+          src={"/Icon_of_Zalo.svg"}
+        />
         <span className="hidden sm:inline">Nhắn Zalo</span>
       </a>
 
