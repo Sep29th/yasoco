@@ -11,6 +11,7 @@ import {
 import { Unkempt } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
+import FloatingButtons from "@/components/floating-buttons";
 
 const unkemptSans = Unkempt({
   weight: ["400", "700"],
@@ -33,8 +34,17 @@ export default function MainLayout({
           {/* Desktop Nav - Left */}
           <div className="hidden md:flex items-center justify-start gap-x-10">
             <NavLink href="/" icon={<HouseHeart />} label="Trang Chủ" />
-            <NavLink href="/" icon={<BriefcaseMedical />} label="Lĩnh vực" />
-            <NavLink href="/" icon={<Stethoscope />} label="Giới thiệu" />
+            <NavLink href="#" icon={<BriefcaseMedical />} label="Lĩnh vực" />
+            <NavLink
+              href="/gioi-thieu"
+              icon={<Stethoscope />}
+              label="Giới thiệu"
+              subLinks={[
+                { href: "/gioi-thieu/ve-chung-toi", label: "Về chúng tôi" },
+                { href: "/gioi-thieu/bac-si", label: "Đội ngũ bác sĩ" },
+                { href: "/gioi-thieu/co-so-vat-chat", label: "Cơ sở vật chất" },
+              ]}
+            />
           </div>
 
           {/* Logo - Center on mobile, middle on desktop */}
@@ -52,9 +62,17 @@ export default function MainLayout({
 
           {/* Desktop Nav - Right */}
           <div className="hidden md:flex items-center justify-end gap-x-10">
-            <NavLink href="/" icon={<CalendarHeart />} label="Đặt lịch" />
-            <NavLink href="/" icon={<ShieldQuestionMark />} label="Hỏi Đáp" />
-            <NavLink href="/" icon={<Phone />} label="Liên Hệ" />
+            <NavLink
+              href="/dat-lich-kham"
+              icon={<CalendarHeart />}
+              label="Đặt lịch"
+            />
+            <NavLink
+              href="/hoi-dap"
+              icon={<ShieldQuestionMark />}
+              label="Hỏi Đáp"
+            />
+            <NavLink href="/lien-he" icon={<Phone />} label="Liên Hệ" />
           </div>
 
           {/* Spacer for mobile */}
@@ -88,6 +106,7 @@ export default function MainLayout({
           </p>
         </div>
       </footer>
+      <FloatingButtons />
     </>
   );
 }

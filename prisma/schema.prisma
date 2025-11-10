@@ -1,0 +1,186 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  phone     String    @unique
+  name      String
+  password  String
+  isActive  Boolean   @default(true)
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  userRoles UserRole[]
+
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([createdAt])
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+model Role {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userRoles       UserRole[]
+  permissionRoles PermissionRole[]
+
+  @@index([createdAt])
+}
+
+model PermissionRole {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+model Permission {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  permissionRoles PermissionRole[]
+
+  @@index([createdAt])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  agent     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum DaysOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model ExaminationSession {
+  id         String     @id @default(uuid())
+  daysOfWeek DaysOfWeek
+  session    Json[]
+
+  @@index([daysOfWeek])
+}
+
+model Examination {
+  id          String   @id @default(uuid())
+  kidName     String
+  kidAge      Int
+  kidGender   String
+  symptoms    String?
+  parentName  String
+  parentPhone String
+  date        DateTime
+
+  @@index([parentPhone])
+  @@index([date])
+}
+
+model ActionLog {
+  id        String   @id @default(uuid())
+  subject   String
+  action    String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Article {
+  id           String                  @id @default(uuid())
+  title        String?
+  slug         String?                 @unique
+  excerpt      String?
+  coverImage   String?
+  content      Json[]
+  contentText  String?
+  searchVector Unsupported("tsvector")?
+  authorId     String
+  isPublished  Boolean                 @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  articleTags ArticleTag[]
+
+  @@index([isPublished])
+  @@index([publishedAt])
+  @@index([authorId])
+}
+
+model ArticleTag {
+  id        String   @id @default(uuid())
+  articleId String
+  tagId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, tagId])
+  @@index([articleId])
+  @@index([tagId])
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  color     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articleTags ArticleTag[]
+}
