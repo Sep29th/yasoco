@@ -15,6 +15,7 @@ CREATE TABLE "Article" (
     "contentText" TEXT,
     "searchVector" tsvector,
     "authorId" TEXT NOT NULL,
+    "showInMainPage" BOOLEAN NOT NULL DEFAULT false,
     "isPublished" BOOLEAN NOT NULL DEFAULT false,
     "publishedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -46,7 +47,7 @@ CREATE TABLE "Tag" (
 CREATE UNIQUE INDEX "Article_slug_key" ON "Article"("slug");
 
 -- CreateIndex
-CREATE INDEX "Article_isPublished_idx" ON "Article"("isPublished");
+CREATE INDEX "Article_isPublished_showInMainPage_idx" ON "Article"("isPublished", "showInMainPage");
 
 -- CreateIndex
 CREATE INDEX "Article_publishedAt_idx" ON "Article"("publishedAt");

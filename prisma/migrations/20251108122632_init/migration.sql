@@ -73,7 +73,7 @@ CREATE TABLE "Session" (
 CREATE TABLE "ExaminationSession" (
     "id" TEXT NOT NULL,
     "daysOfWeek" "DaysOfWeek" NOT NULL,
-    "session" JSONB[],
+    "session" JSONB,
 
     CONSTRAINT "ExaminationSession_pkey" PRIMARY KEY ("id")
 );
