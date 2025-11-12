@@ -1,3 +1,4 @@
+import { requireAuth } from "@/lib/auth";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -6,8 +7,15 @@ export const metadata: Metadata = {
     "Phòng khám Yasoco - Nơi chăm sóc sức khỏe toàn diện cho trẻ em.",
 };
 
-export default function ManagerLayout({
+export default async function ManagerLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return <>{children}</>;
+  const auth = await requireAuth();
+
+  return (
+    <>
+      <h1>{auth.userId}</h1>
+      <>{children}</>
+    </>
+  );
 }

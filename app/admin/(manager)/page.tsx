@@ -1,3 +1,6 @@
-export default function Dashboard() {
-  return <h1>Dashboard</h1>;
+import { requireAuth } from "@/lib/auth";
+
+export default async function Dashboard() {
+  const auth = await requireAuth();
+  return <p>{auth.permissions.join(",")}</p>;
 }

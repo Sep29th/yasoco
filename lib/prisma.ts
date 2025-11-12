@@ -57,6 +57,23 @@ const extendedPrismaClient = prismaClient.$extends({
         return trigramResults;
       },
     },
+    user: {
+      async allPermissions(userId: string) {
+        const result = await prismaClient.$queryRaw<{ name: string }[]>`
+          SELECT DISTINCT p.name
+          FROM "User" u
+          INNER JOIN "UserRole" ur ON u.id = ur."userId"
+          INNER JOIN "Role" r ON ur."roleId" = r.id
+          INNER JOIN "PermissionRole" pr ON r.id = pr."roleId"
+          INNER JOIN "Permission" p ON pr."permissionId" = p.id
+          WHERE u.id = ${userId}
+            AND u."isActive" = true
+            AND u."isDeleted" = false
+        `;
+
+        return result.map((row) => row.name);
+      },
+    },
   },
 });
 

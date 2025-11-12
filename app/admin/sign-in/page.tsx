@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import SignInForm from "./sign-in-form";
 
 export const metadata: Metadata = {
   title: "Phòng khám Yasoco | Đăng nhập",
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function SignIn() {
-  return <h1>Sign In</h1>;
+  return <SignInForm />;
 }
