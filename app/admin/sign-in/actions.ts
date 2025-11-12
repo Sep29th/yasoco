@@ -14,7 +14,10 @@ async function authenticateUser(
   returnTo: string | null
 ): Promise<SignInState> {
   const signInResult = await prisma.$transaction(async (tx) => {
-    const user = await tx.user.findUnique({ where: { phone } });
+    const user = await tx.user.findUnique({
+      where: { phone },
+      select: { id: true, isActive: true, isDeleted: true, password: true },
+    });
 
     if (!user || !user.isActive || user.isDeleted)
       return "Tài khoản không tồn tại hoặc đã bị dừng hoạt động";
@@ -27,6 +30,7 @@ async function authenticateUser(
       data: {
         userId: user.id,
         agent: (await headers()).get("user-agent") || "unknown",
+        expireAt: new Date(new Date().getTime() + 60 * 60 * 24 * 7 * 1000),
       },
       select: { id: true },
     });
@@ -37,7 +41,13 @@ async function authenticateUser(
   });
 
   if (typeof signInResult == "string")
-    return { password: { errors: [signInResult] } };
+    return {
+      password: { errors: [signInResult] },
+      values: {
+        phone,
+        password,
+      },
+    };
 
   const tokenPair = await generateTokenPair(
     signInResult.user.id,
@@ -66,7 +76,8 @@ async function authenticateUser(
 
 export async function signInAction(
   data: SignInSchema,
-  returnTo: string | null
+  returnTo: string | null,
+  formData: FormData
 ): Promise<SignInState> {
   try {
     return authenticateUser(data.phone, data.password, returnTo);
@@ -75,6 +86,10 @@ export async function signInAction(
     return {
       password: {
         errors: ["Đã xảy ra lỗi không mong muốn. Vui lòng thử lại"],
+      },
+      values: {
+        phone: formData.get("phone") as string,
+        password: formData.get("password") as string,
       },
     };
   }

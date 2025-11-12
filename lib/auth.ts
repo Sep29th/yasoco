@@ -1,99 +1,56 @@
-import { cookies, headers } from "next/headers";
-import {
-  AccessTokenPayload,
-  generateTokenPair,
-  RefreshTokenPayload,
-  verifyAccessToken,
-  verifyRefreshToken,
-} from "./jwt";
+import { cookies } from "next/headers";
+import { verifyAccessToken, verifyRefreshToken } from "./jwt";
 import prisma from "./prisma";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 
-export const verifySession = cache(async () => {
+export const getAuthPayload = cache(async () => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
-  const refreshToken = cookieStore.get("refreshToken")?.value;
 
-  if (!accessToken || !refreshToken) {
+  if (!accessToken) {
+    console.error("Không tìm thấy AccessToken dù đã qua middleware");
     return null;
   }
 
-  let payload: AccessTokenPayload | RefreshTokenPayload | null =
-    verifyAccessToken(accessToken);
+  const payload = verifyAccessToken(accessToken);
 
-  if (payload) {
-    return payload as AccessTokenPayload;
-  }
-
-  payload = verifyRefreshToken(refreshToken);
-
-  if (!payload || !payload.jti) {
+  if (!payload) {
+    console.error("AccessToken không hợp lệ dù đã qua middleware");
     return null;
   }
 
-  const isValid = await prisma.$transaction(async (tx) => {
-    const session = await tx.session.delete({
-      where: { id: payload.jti },
-      select: { id: true },
-    });
-    if (!session) return null;
-
-    const user = await tx.user.findUnique({
-      where: { id: payload.userId },
-      select: { isActive: true, isDeleted: true },
-    });
-
-    if (!user || !user.isActive || user.isDeleted) return null;
-
-    const newSession = await tx.session.create({
-      data: {
-        userId: payload.userId,
-        agent: (await headers()).get("user-agent") || "unknown",
-      },
-      select: { id: true },
-    });
-
-    const permissions = await tx.user.allPermissions(payload.userId);
-
-    return { newSessionId: newSession.id, permissions };
-  });
-
-  if (!isValid) return null;
-
-  const tokenPair = await generateTokenPair(
-    payload.userId,
-    isValid.newSessionId,
-    isValid.permissions
-  );
-
-  cookieStore.set("accessToken", tokenPair.accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 15,
-  });
-
-  cookieStore.set("refreshToken", tokenPair.refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-
-  return { userId: payload.userId, permissions: isValid.permissions };
+  return payload;
 });
 
-export const requireAuth = cache(async (returnTo?: string) => {
-  const auth = await verifySession();
+export const requireAuth = cache(async () => {
+  const accessTokenPayload = await getAuthPayload();
 
-  if (!auth)
-    redirect(`/admin/sign-in${returnTo ? `?returnTo=${returnTo}` : ""}`);
+  if (!accessTokenPayload) {
+    redirect("/admin/sign-in?error=session");
+  }
 
-  return auth;
+  return accessTokenPayload;
 });
 
 export const getCurrentUser = cache(async () => {
   const accessTokenPayload = await requireAuth();
-  return prisma.user.findUnique({ where: { id: accessTokenPayload.userId } });
+
+  return prisma.user.findUnique({
+    where: { id: accessTokenPayload.userId },
+  });
 });
+
+export async function signOut() {
+  const cookieStore = await cookies();
+  cookieStore.delete("accessToken");
+  cookieStore.delete("refreshToken");
+
+  const refreshToken = cookieStore.get("refreshToken")?.value;
+  if (refreshToken) {
+    const payload = verifyRefreshToken(refreshToken); // <-- Thêm dòng này
+    if (payload && payload.jti) {
+      await prisma.session.deleteMany({ where: { id: payload.jti } });
+    }
+  }
+}

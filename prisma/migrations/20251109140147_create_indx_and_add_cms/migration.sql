@@ -152,13 +152,7 @@ CREATE EXTENSION IF NOT EXISTS unaccent;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
--- 1) Thêm cột searchVector
-ALTER TABLE
-    "Article"
-ADD
-    COLUMN IF NOT EXISTS "searchVector" tsvector;
-
--- 2) Tạo function cập nhật searchVector dùng unaccent (bỏ dấu)
+-- Tạo function cập nhật searchVector dùng unaccent (bỏ dấu)
 CREATE
 OR REPLACE FUNCTION article_tsvector_update() RETURNS trigger AS $$ BEGIN -- Kết hợp title + contentText, bỏ dấu trước khi chuyển thành tsvector
 NEW."searchVector" := to_tsvector(
@@ -170,7 +164,7 @@ RETURN NEW;
 
 END $$ LANGUAGE plpgsql;
 
--- 3) Tạo trigger để tự động cập nhật trước INSERT/UPDATE
+-- Tạo trigger để tự động cập nhật trước INSERT/UPDATE
 DROP TRIGGER IF EXISTS article_tsvector_update ON "Article";
 
 CREATE TRIGGER article_tsvector_update BEFORE
@@ -179,7 +173,7 @@ INSERT
 UPDATE
     ON "Article" FOR EACH ROW EXECUTE FUNCTION article_tsvector_update();
 
--- 4) Cập nhật các hàng cũ (một lần)
+-- Cập nhật các hàng cũ (một lần)
 UPDATE
     "Article"
 SET
@@ -190,8 +184,8 @@ SET
 WHERE
     "searchVector" IS NULL;
 
--- 5) Tạo index GIN trên searchVector để FTS nhanh
+-- Tạo index GIN trên searchVector để FTS nhanh
 CREATE INDEX IF NOT EXISTS article_search_vector_idx ON "Article" USING GIN ("searchVector");
 
--- 6) (Tùy chọn) Tạo index GIN trgm trên contentText để hỗ trợ similarity/ILIKE nhanh
+-- (Tùy chọn) Tạo index GIN trgm trên contentText để hỗ trợ similarity/ILIKE nhanh
 CREATE INDEX IF NOT EXISTS article_contenttext_trgm_idx ON "Article" USING GIN ("contentText" gin_trgm_ops);

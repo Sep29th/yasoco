@@ -87,16 +87,15 @@ model Permission {
 }
 
 model Session {
-  id        String   @id @default(uuid())
-  userId    String
-  agent     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id       String   @id @default(uuid())
+  userId   String
+  agent    String
+  expireAt DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([createdAt])
+  @@index([expireAt])
 }
 
 enum DaysOfWeek {

@@ -1,7 +1,4 @@
-export type SignInState = {
-  [key: string]:
-    | {
-        errors: string[];
-      }
-    | undefined;
-};
+import { FieldToFormState } from "@/lib/utils";
+import { SignInSchema } from "../schema";
+
+export type SignInState = FieldToFormState<keyof SignInSchema>;
