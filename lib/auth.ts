@@ -39,12 +39,12 @@ export const verifySession = cache(async () => {
     });
     if (!session) return null;
 
-    const isActive = await tx.user.findUnique({
+    const user = await tx.user.findUnique({
       where: { id: payload.userId },
       select: { isActive: true, isDeleted: true },
     });
 
-    if (!isActive || !isActive.isActive || isActive.isDeleted) return null;
+    if (!user || !user.isActive || user.isDeleted) return null;
 
     const newSession = await tx.session.create({
       data: {
@@ -56,32 +56,32 @@ export const verifySession = cache(async () => {
 
     const permissions = await tx.user.allPermissions(payload.userId);
 
-    const tokenPair = await generateTokenPair(
-      payload.userId,
-      newSession.id,
-      permissions
-    );
-
-    return { tokenPair, payload: { userId: payload.userId, permissions } };
+    return { newSessionId: newSession.id, permissions };
   });
 
   if (!isValid) return null;
 
-  cookieStore.set("accessToken", isValid.tokenPair.accessToken, {
+  const tokenPair = await generateTokenPair(
+    payload.userId,
+    isValid.newSessionId,
+    isValid.permissions
+  );
+
+  cookieStore.set("accessToken", tokenPair.accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 60 * 15,
   });
 
-  cookieStore.set("refreshToken", isValid.tokenPair.refreshToken, {
+  cookieStore.set("refreshToken", tokenPair.refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7,
   });
 
-  return isValid.payload;
+  return { userId: payload.userId, permissions: isValid.permissions };
 });
 
 export const requireAuth = cache(async (returnTo?: string) => {

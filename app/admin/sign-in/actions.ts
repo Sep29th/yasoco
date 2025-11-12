@@ -1,81 +1,81 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { signInSchema } from "./schema";
+import { SignInState } from "./_types/form-messages";
+import { SignInSchema } from "./schema";
+import prisma from "@/lib/prisma";
+import { cookies, headers } from "next/headers";
+import { generateTokenPair } from "@/lib/jwt";
+import bcrypt from "bcrypt";
 
-export type SignInState = {
-  errors?: {
-    phone?: string[];
-    password?: string[];
-    _form?: string[]; // Lỗi chung không thuộc field nào
-  };
-  message?: string | null;
-};
-
-// --- Giả lập logic xác thực ---
 async function authenticateUser(
   phone: string,
-  password: string
-): Promise<{
-  success: true;
-  user: { id: string; phone: string };
-}> {
-  console.log(`SERVER: Đang xác thực SĐT: ${phone}`);
-  await new Promise((res) => setTimeout(res, 1000));
-
-  if (phone === "0987654321" && password === "123456") {
-    console.log("SERVER: Đăng nhập thành công!");
-    return { success: true, user: { id: "1", phone } };
-  } else {
-    console.log("SERVER: Đăng nhập thất bại.");
-    throw new Error("Số điện thoại hoặc mật khẩu không chính xác.");
-  }
-}
-// --- Hết phần giả lập ---
-
-/**
- * Server Action để xử lý đăng nhập.
- * Nhận `previousState` và `formData`, trả về `SignInState`.
- */
-export async function signInAction(
-  previousState: SignInState,
-  formData: FormData
+  password: string,
+  returnTo: string | null
 ): Promise<SignInState> {
-  // 1. Lấy dữ liệu thô từ form
-  const data = Object.fromEntries(formData.entries());
+  const signInResult = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.findUnique({ where: { phone } });
 
-  // 2. Validate lại dữ liệu ở SERVER
-  const validationResult = signInSchema.safeParse(data);
+    if (!user || !user.isActive || user.isDeleted)
+      return "Tài khoản không tồn tại hoặc đã bị dừng hoạt động";
 
-  if (!validationResult.success) {
-    // Nếu Zod fail, trả về lỗi đã được flat
-    return {
-      errors: validationResult.error.flatten().fieldErrors,
-      message: null,
-    };
-  }
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
 
-  const { phone, password } = validationResult.data;
+    if (!isPasswordMatch) return "Sai mật khẩu";
 
-  // 3. Thử thực hiện logic đăng nhập
+    const newSession = await tx.session.create({
+      data: {
+        userId: user.id,
+        agent: (await headers()).get("user-agent") || "unknown",
+      },
+      select: { id: true },
+    });
+
+    const permissions = await tx.user.allPermissions(user.id);
+
+    return { user, newSession, permissions };
+  });
+
+  if (typeof signInResult == "string")
+    return { password: { errors: [signInResult] } };
+
+  const tokenPair = await generateTokenPair(
+    signInResult.user.id,
+    signInResult.newSession.id,
+    signInResult.permissions
+  );
+
+  const cookieStore = await cookies();
+
+  cookieStore.set("accessToken", tokenPair.accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 15,
+  });
+
+  cookieStore.set("refreshToken", tokenPair.refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  redirect(returnTo ?? "/admin");
+}
+
+export async function signInAction(
+  data: SignInSchema,
+  returnTo: string | null
+): Promise<SignInState> {
   try {
-    await authenticateUser(phone, password);
+    return authenticateUser(data.phone, data.password, returnTo);
   } catch (error) {
-    // 4. Xử lý lỗi logic (VD: sai mật khẩu)
-    if (error instanceof Error) {
-      return {
-        errors: {},
-        message: error.message, // Hiển thị lỗi chung này
-      };
-    }
-    // Lỗi không mong muốn
+    console.error(error);
     return {
-      errors: {},
-      message: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+      password: {
+        errors: ["Đã xảy ra lỗi không mong muốn. Vui lòng thử lại"],
+      },
     };
   }
-
-  // 5. Đăng nhập THÀNH CÔNG
-  const returnTo = formData.get("returnTo");
-  redirect(returnTo?.toString() || "/admin/dashboard"); // Chuyển đến trang dashboard
 }
