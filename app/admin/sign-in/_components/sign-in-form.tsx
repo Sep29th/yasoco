@@ -3,11 +3,11 @@
 import { useActionState, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Smartphone, Lock } from "lucide-react";
-import { signInAction as serverSignInAction } from "./actions";
-import { signInSchema } from "./schema";
-import { SubmitButton } from "./submit-button";
-import { SignInState } from "./_types/form-messages";
 import z from "zod";
+import { SignInState } from "../_types/sign-in-state";
+import { signInSchema } from "../_schemas/sign-in";
+import { signInAction } from "../_actions/sign-in";
+import { SubmitButton } from "./submit-button";
 
 export default function SignInForm() {
   const searchParams = useSearchParams();
@@ -34,7 +34,7 @@ export default function SignInForm() {
       };
     }
 
-    return serverSignInAction(validationResult.data, returnTo, formData);
+    return signInAction(validationResult.data, returnTo);
   };
 
   const [state, formAction, isPending] = useActionState(

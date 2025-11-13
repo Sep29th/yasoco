@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import SignInForm from "./sign-in-form";
 import Image from "next/image";
+import SignInForm from "./_components/sign-in-form";
 
 export const metadata: Metadata = {
   title: "Phòng khám Yasoco | Đăng nhập",
