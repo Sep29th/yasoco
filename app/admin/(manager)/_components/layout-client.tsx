@@ -1,22 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import SidebarWrapper from "./sidebar-wrapper";
+import Sidebar from "./sidebar";
+import { MenuItem } from "../_types/menu-item";
+import Header from "./header";
+import { User } from "@/lib/generated/prisma";
 
 type PropsType = {
   children: React.ReactNode;
+  menuData: MenuItem[];
+  currentUser: User;
 };
 
-export default function LayoutClient({ children }: PropsType) {
+export default function LayoutClient({
+  children,
+  menuData,
+  currentUser,
+}: PropsType) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <SidebarWrapper sidebarOpen={sidebarOpen} />
+    <>
+      <Sidebar sidebarOpen={sidebarOpen} menuData={menuData} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} /> */}
+        <Header
+          currentUser={currentUser}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
         <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
-    </div>
+    </>
   );
 }

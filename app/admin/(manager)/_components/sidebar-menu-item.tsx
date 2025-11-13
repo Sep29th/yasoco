@@ -2,13 +2,14 @@
 
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { MenuItem } from "../_types/menu-item";
+import { useRouter } from "next/navigation";
 
 type PropsType = {
   item: MenuItem;
   sidebarOpen: boolean;
   expanded?: boolean;
   onToggle: () => void;
-  icon: React.ReactNode
+  icon: React.ReactNode;
 };
 
 export default function SidebarMenuItem({
@@ -16,44 +17,54 @@ export default function SidebarMenuItem({
   sidebarOpen,
   expanded,
   onToggle,
-  icon
+  icon,
 }: PropsType) {
+  const hasSubmenu = !!item.submenu?.length;
+
+  const route = useRouter();
+
   return (
-    <div>
+    <div className="select-none">
       <button
-        onClick={() => (item.submenu ? onToggle() : null)}
-        className="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors group"
+        onClick={() => (hasSubmenu ? onToggle() : null)}
+        className={`w-full flex items-center ${
+          sidebarOpen ? "justify-between" : "justify-center"
+        } px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors group cursor-pointer`}
         title={!sidebarOpen ? item.label : ""}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           {icon}
           {sidebarOpen && (
-            <span className="font-medium group-hover:text-[#A6CF52]">
+            <span className="font-medium group-hover:text-[#A6CF52] whitespace-nowrap truncate">
               {item.label}
             </span>
           )}
         </div>
+
         {sidebarOpen &&
-          item.submenu &&
+          hasSubmenu &&
           (expanded ? (
-            <ChevronDown className="w-4 h-4" />
+            <ChevronDown className="w-4 h-4 shrink-0" />
           ) : (
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4 shrink-0" />
           ))}
       </button>
-
-      {sidebarOpen && item.submenu && expanded && (
-        <div className="bg-gray-50">
-          {item.submenu.map((subitem, subIndex) => (
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          expanded && sidebarOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        } bg-gray-50`}
+      >
+        {sidebarOpen &&
+          item.submenu?.map((subitem, subIndex) => (
             <button
+              onClick={() => route.push(subitem.path)}
               key={subIndex}
-              className="w-full flex items-center px-4 py-2 pl-14 text-sm text-gray-600 hover:text-[#A6CF52] hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center px-4 py-2 pl-14 text-sm text-gray-600 hover:text-[#A6CF52] hover:bg-gray-100 transition-colors cursor-pointer whitespace-nowrap truncate"
             >
               {subitem.label}
             </button>
           ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

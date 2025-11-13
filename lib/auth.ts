@@ -1,3 +1,5 @@
+"use server";
+
 import { cookies, headers } from "next/headers";
 import {
   generateTokenPair,
@@ -32,7 +34,7 @@ export const requireAuth = cache(async () => {
   const accessTokenPayload = await getAuthPayload();
 
   if (!accessTokenPayload) {
-    redirect("/admin/sign-in?error=session");
+    redirect("/admin/sign-in?error=session-require-auth");
   }
 
   return accessTokenPayload;
@@ -41,15 +43,18 @@ export const requireAuth = cache(async () => {
 export const getCurrentUser = cache(async () => {
   const accessTokenPayload = await requireAuth();
 
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: accessTokenPayload.userId },
   });
+
+  if (!user) redirect("/admin/sign-in?error=session-get-current-user");
+
+  return user;
 });
 
 export async function signOut() {
   const cookieStore = await cookies();
   cookieStore.delete("accessToken");
-  cookieStore.delete("refreshToken");
 
   const refreshToken = cookieStore.get("refreshToken")?.value;
   if (refreshToken) {
@@ -58,6 +63,9 @@ export async function signOut() {
       await prisma.session.deleteMany({ where: { id: payload.jti } });
     }
   }
+  cookieStore.delete("refreshToken");
+
+  redirect("/admin/sign-in");
 }
 
 export async function signIn(phone: string, password: string) {

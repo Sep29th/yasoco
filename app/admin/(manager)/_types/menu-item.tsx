@@ -1,5 +1,5 @@
 export interface MenuItem {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   path?: string;
   submenu?: Array<{ label: string; path: string }>;
