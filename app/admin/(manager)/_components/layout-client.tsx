@@ -21,7 +21,7 @@ export default function LayoutClient({
 
   return (
     <>
-      <Sidebar sidebarOpen={sidebarOpen} menuData={menuData} />
+      <Sidebar sidebarOpen={sidebarOpen} menuData={menuData} setSidebarOpen={setSidebarOpen}/>
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
           currentUser={currentUser}

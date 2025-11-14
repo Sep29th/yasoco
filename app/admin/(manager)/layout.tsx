@@ -24,29 +24,6 @@ export default async function ManagerLayout({
   const auth = await requireAuth();
   const currentUser = await getCurrentUser();
 
-  // const menuData: MenuItem[] = [
-  //   { icon: <Home />, label: "Trang chủ", path: "/dashboard" },
-  //   {
-  //     icon: <Users />,
-  //     label: "Người dùng",
-  //     submenu: [
-  //       { label: "Danh sách", path: "/users" },
-  //       { label: "Thêm mới", path: "/users/new" },
-  //       { label: "Vai trò", path: "/users/roles" },
-  //     ],
-  //   },
-  //   {
-  //     icon: <FileText />,
-  //     label: "Nội dung",
-  //     submenu: [
-  //       { label: "Bài viết", path: "/posts" },
-  //       { label: "Danh mục", path: "/categories" },
-  //     ],
-  //   },
-  //   { icon: <BarChart />, label: "Báo cáo", path: "/reports" },
-  //   { icon: <Settings />, label: "Cài đặt", path: "/settings" },
-  // ];
-
   const menuData: MenuItem[] = [
     { icon: <LayoutDashboard />, label: "Tổng quan", path: "/admin" },
   ];
@@ -166,7 +143,6 @@ export default async function ManagerLayout({
       <LayoutClient menuData={menuData} currentUser={currentUser}>
         {children}
       </LayoutClient>
-      ;
     </div>
   );
 }

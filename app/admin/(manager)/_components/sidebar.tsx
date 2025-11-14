@@ -8,9 +8,10 @@ import Logo from "./logo";
 type PropsType = {
   sidebarOpen: boolean;
   menuData: MenuItem[];
+  setSidebarOpen: (open: boolean) => void;
 };
 
-export default function Sidebar({ sidebarOpen, menuData }: PropsType) {
+export default function Sidebar({ sidebarOpen, menuData, setSidebarOpen }: PropsType) {
   const [expandedMenus, setExpandedMenus] = useState<Record<number, boolean>>(
     {}
   );
@@ -41,6 +42,7 @@ export default function Sidebar({ sidebarOpen, menuData }: PropsType) {
             sidebarOpen={sidebarOpen}
             expanded={expandedMenus[index]}
             onToggle={() => toggleSubmenu(index)}
+            setSidebarOpen={setSidebarOpen}
           />
         ))}
       </nav>

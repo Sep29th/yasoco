@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, User as UserIcon, Settings, LogOut } from "lucide-react";
+import { ChevronDown, User as UserIcon, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +23,7 @@ export default function ProfileDropdown({ currentUser }: PropsType) {
   const [isPending, startTransition] = useTransition();
 
   const handleProfileClick = () => {
-    router.push("/profile");
+    router.push("/admin/profile");
   };
 
   const handleLogout = () => {
@@ -65,10 +65,6 @@ export default function ProfileDropdown({ currentUser }: PropsType) {
           <UserIcon className="w-4 h-4 mr-2" />
           Hồ sơ cá nhân
         </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer">
-          <Settings className="w-4 h-4 mr-2" />
-          Cài đặt
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleLogout}
@@ -77,7 +73,7 @@ export default function ProfileDropdown({ currentUser }: PropsType) {
             isPending ? "opacity-50 cursor-wait" : ""
           }`}
         >
-          <LogOut className="w-4 h-4 mr-2" />
+          <LogOut className="w-4 h-4 mr-2 text-red-600" />
           {isPending ? "Đang đăng xuất..." : "Đăng xuất"}
         </DropdownMenuItem>
       </DropdownMenuContent>

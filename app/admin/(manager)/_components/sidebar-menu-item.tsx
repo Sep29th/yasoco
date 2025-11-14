@@ -10,6 +10,7 @@ type PropsType = {
   expanded?: boolean;
   onToggle: () => void;
   icon: React.ReactNode;
+  setSidebarOpen: (open: boolean) => void;
 };
 
 export default function SidebarMenuItem({
@@ -18,15 +19,24 @@ export default function SidebarMenuItem({
   expanded,
   onToggle,
   icon,
+  setSidebarOpen,
 }: PropsType) {
   const hasSubmenu = !!item.submenu?.length;
 
   const route = useRouter();
 
+  const handleClick = () => {
+    if (hasSubmenu) {
+      if (!sidebarOpen) setSidebarOpen(true);
+
+      onToggle();
+    }
+  };
+
   return (
     <div className="select-none">
       <button
-        onClick={() => (hasSubmenu ? onToggle() : null)}
+        onClick={handleClick}
         className={`w-full flex items-center ${
           sidebarOpen ? "justify-between" : "justify-center"
         } px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors group cursor-pointer`}

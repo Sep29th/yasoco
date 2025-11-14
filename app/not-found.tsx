@@ -4,18 +4,13 @@ import Image from "next/image";
 export default function NotFound() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 p-8 text-center">
-      {/* THAY THẾ CHỖ NÀY BẰNG ẢNH CỦA BẠN 
-        Bạn có thể dùng component <Image> của Next.js
-        hoặc một thẻ <img> đơn giản.
-      */}
       <Image
-        // src="/link-den-anh-illustration-cua-ban.svg" // <-- Thay đổi link này
-        src="/404.svg" // <-- Link ảnh mèo 404 placeholder
+        src="/404.svg"
         alt="Trang không tìm thấy"
         width={400}
         height={300}
         className="max-w-full"
-        priority // Ưu tiên tải ảnh này
+        priority
       />
 
       <div className="flex flex-col gap-4">
