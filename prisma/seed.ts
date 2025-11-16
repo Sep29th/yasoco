@@ -1,3 +1,4 @@
+import { ALL_PERMISSION } from "@/lib/constants/permission";
 import { DaysOfWeek, PrismaClient } from "../lib/generated/prisma";
 import bcrypt from "bcrypt";
 
@@ -52,49 +53,16 @@ async function seedSuperAdminAndRole() {
  */
 async function seedPermissions(superAdminRoleId: string) {
   console.log("Đang định nghĩa và tạo các quyền (permissions)...");
-  const permissionNames = [
-    // User
-    "user:read",
-    "user:create",
-    "user:update",
-    "user:delete",
-    // Role
-    "role:read",
-    "role:create",
-    "role:update",
-    "role:delete",
-    // Examination
-    "examination:read",
-    "examination:create",
-    "examination:update",
-    "examination:delete",
-    // Examination Session
-    "examination-session:read",
-    "examination-session:create",
-    "examination-session:update",
-    "examination-session:delete",
-    // Article
-    "article:read",
-    "article:create",
-    "article:update",
-    "article:delete",
-    "article:publish",
-    // Tag
-    "tag:read",
-    "tag:create",
-    "tag:update",
-    "tag:delete",
-  ];
 
   await prisma.permission.createMany({
-    data: permissionNames.map((name) => ({ name })),
+    data: ALL_PERMISSION.map((name) => ({ name })),
     skipDuplicates: true,
   });
 
   console.log("Đang lấy thông tin các quyền...");
   const allPermissions = await prisma.permission.findMany({
     where: {
-      name: { in: permissionNames },
+      name: { in: ALL_PERMISSION },
     },
   });
 

@@ -17,11 +17,19 @@ export default function LayoutClient({
   menuData,
   currentUser,
 }: PropsType) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <>
-      <Sidebar sidebarOpen={sidebarOpen} menuData={menuData} setSidebarOpen={setSidebarOpen}/>
+      <Sidebar sidebarOpen={sidebarOpen} menuData={menuData} setSidebarOpen={setSidebarOpen} />
+      {/* Backdrop for mobile drawer */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden
+        />
+      )}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
           currentUser={currentUser}

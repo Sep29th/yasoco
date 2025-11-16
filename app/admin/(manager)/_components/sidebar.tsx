@@ -12,40 +12,41 @@ type PropsType = {
 };
 
 export default function Sidebar({ sidebarOpen, menuData, setSidebarOpen }: PropsType) {
-  const [expandedMenus, setExpandedMenus] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [expanded, setExpanded] = useState<string | null>(null);
 
-  const toggleSubmenu = (index: number) => {
-    setExpandedMenus((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
+  const handleToggle = (label: string) => {
+    setExpanded((prev) => (prev === label ? null : label));
   };
 
   return (
     <aside
-      className={`${
-        sidebarOpen ? "w-64" : "w-0 md:w-20"
-      } bg-white border-r border-gray-200 transition-[width] duration-300 flex-col overflow-hidden ${
-        sidebarOpen ? "flex" : "hidden md:flex"
+      className={`bg-white border-r border-gray-200 transition-[width,transform] absolute sm:block duration-300 shrink-0 h-full md:static z-50 transform ${
+        // On mobile we use transform-based drawer overlay; on md+ it is static and may be collapsed
+        sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0 md:w-20 w-0"
       }`}
     >
-      <Logo sidebarOpen={sidebarOpen} />
+      <div className="h-full flex flex-col">
+        <div className="flex items-center justify-center h-16 border-b">
+          <Logo sidebarOpen={sidebarOpen} />
+        </div>
 
-      <nav className="flex-1 overflow-y-auto py-4">
-        {menuData.map((item, index) => (
-          <SidebarMenuItem
-            key={index}
-            item={item}
-            icon={item.icon}
-            sidebarOpen={sidebarOpen}
-            expanded={expandedMenus[index]}
-            onToggle={() => toggleSubmenu(index)}
-            setSidebarOpen={setSidebarOpen}
-          />
-        ))}
-      </nav>
+        <div className="flex-1 overflow-y-auto">
+          <nav className="py-4">
+            {menuData.map((item, idx) => (
+              <SidebarMenuItem
+                key={idx}
+                item={item}
+                sidebarOpen={sidebarOpen}
+                expanded={expanded === item.label}
+                onToggle={() => handleToggle(item.label)}
+                icon={item.icon}
+                setSidebarOpen={setSidebarOpen}
+              />
+            ))}
+          </nav>
+        </div>
+      </div>
     </aside>
   );
+
 }

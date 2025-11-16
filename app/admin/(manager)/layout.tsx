@@ -20,121 +20,69 @@ export const metadata: Metadata = {
 
 export default async function ManagerLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+  modal,
+}: Readonly<{ children: React.ReactNode; modal: React.ReactNode }>) {
   const auth = await requireAuth();
   const currentUser = await getCurrentUser();
 
   const menuData: MenuItem[] = [
-    { icon: <LayoutDashboard />, label: "Tổng quan", path: "/admin" },
+    {
+      icon: <LayoutDashboard className="group-hover:text-[#A6CF52]" />,
+      label: "Tổng quan",
+      path: "/admin",
+    },
   ];
 
-  const permissionsSet = new Set(auth.permissions);
+  // const permissionsSet = new Set(auth.permissions);
   const topicSet = new Set(
     auth.permissions.map((permisson) => permisson.split(":")[0])
   );
 
   if (topicSet.has("role")) {
-    const submenu: MenuItem["submenu"] = [];
-
-    if (permissionsSet.has("role:read"))
-      submenu.push({ label: "Danh sách", path: "/admin/roles" });
-
-    if (permissionsSet.has("role:create"))
-      submenu.push({ label: "Tạo mới", path: "/admin/roles/create" });
-
     menuData.push({
-      icon: <ShieldUser />,
+      icon: <ShieldUser className="group-hover:text-[#A6CF52]" />,
       label: "Vai trò",
-      submenu,
+      path: "/admin/roles",
     });
   }
 
   if (topicSet.has("user")) {
-    const submenu: MenuItem["submenu"] = [];
-
-    if (permissionsSet.has("user:read"))
-      submenu.push({ label: "Danh sách", path: "/admin/users" });
-
-    if (permissionsSet.has("user:create"))
-      submenu.push({ label: "Tạo mới", path: "/admin/users/create" });
-
     menuData.push({
-      icon: <Users />,
+      icon: <Users className="group-hover:text-[#A6CF52]" />,
       label: "Người dùng",
-      submenu,
+      path: "/admin/users",
     });
   }
 
   if (topicSet.has("examination")) {
-    const submenu: MenuItem["submenu"] = [];
-
-    if (permissionsSet.has("examination:read"))
-      submenu.push({ label: "Danh sách", path: "/admin/examinations" });
-
-    if (permissionsSet.has("examination:create"))
-      submenu.push({ label: "Tạo mới", path: "/admin/examinations/create" });
-
     menuData.push({
-      icon: <CalendarPlus2 />,
+      icon: <CalendarPlus2 className="group-hover:text-[#A6CF52]" />,
       label: "Lịch khám",
-      submenu,
+      path: "/admin/examinations",
     });
   }
 
   if (topicSet.has("examination-session")) {
-    const submenu: MenuItem["submenu"] = [];
-
-    if (permissionsSet.has("examination-session:read"))
-      submenu.push({ label: "Danh sách", path: "/admin/examination-session" });
-
-    if (permissionsSet.has("examination-session:create"))
-      submenu.push({
-        label: "Tạo mới",
-        path: "/admin/examination-session/create",
-      });
-
     menuData.push({
-      icon: <CalendarClock />,
+      icon: <CalendarClock className="group-hover:text-[#A6CF52]" />,
       label: "Giờ khám",
-      submenu,
+      path: "/admin/examination-session",
     });
   }
 
   if (topicSet.has("tag")) {
-    const submenu: MenuItem["submenu"] = [];
-
-    if (permissionsSet.has("tag:read"))
-      submenu.push({ label: "Danh sách", path: "/admin/tag" });
-
-    if (permissionsSet.has("tag:create"))
-      submenu.push({
-        label: "Tạo mới",
-        path: "/admin/tag/create",
-      });
-
     menuData.push({
-      icon: <Tag />,
+      icon: <Tag className="group-hover:text-[#A6CF52]" />,
       label: "Chủ đề",
-      submenu,
+      path: "/admin/tag",
     });
   }
 
   if (topicSet.has("article")) {
-    const submenu: MenuItem["submenu"] = [];
-
-    if (permissionsSet.has("article:read"))
-      submenu.push({ label: "Danh sách", path: "/admin/article" });
-
-    if (permissionsSet.has("article:create"))
-      submenu.push({
-        label: "Tạo mới",
-        path: "/admin/article/create",
-      });
-
     menuData.push({
-      icon: <Newspaper />,
+      icon: <Newspaper className="group-hover:text-[#A6CF52]" />,
       label: "Bài viết",
-      submenu,
+      path: "/admin/article",
     });
   }
 
@@ -142,6 +90,7 @@ export default async function ManagerLayout({
     <div className="flex h-screen bg-gray-50">
       <LayoutClient menuData={menuData} currentUser={currentUser}>
         {children}
+        {modal}
       </LayoutClient>
     </div>
   );
