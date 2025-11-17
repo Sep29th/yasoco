@@ -80,3 +80,9 @@ export const createRole = async ({
 
   return result;
 };
+
+export const deleteRole = async (id: string) => {
+  const result = await prisma.role.deleteMany({ where: { id } });
+
+  return result.count;
+};

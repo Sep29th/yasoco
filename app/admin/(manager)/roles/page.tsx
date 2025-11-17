@@ -34,7 +34,7 @@ import ModalContent from "./_components/modal-content";
 import { Badge } from "@/components/ui/badge";
 
 type Props = {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; error?: string }>;
 };
 
 export default async function RolePage({ searchParams }: Props) {
@@ -52,10 +52,17 @@ export default async function RolePage({ searchParams }: Props) {
 
   // If `modal` query param is present, we'll render the modal overlay below
   const spTyped = sp as Record<string, string | undefined>;
+  const errorMessage =
+    typeof spTyped.error === "string" ? spTyped.error.trim() : "";
   const modalId = String(spTyped.modal ?? "").trim();
 
   return (
     <div className="space-y-4">
+      {errorMessage && (
+        <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {errorMessage}
+        </div>
+      )}
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Vai trò</h1>
 
@@ -145,10 +152,10 @@ export default async function RolePage({ searchParams }: Props) {
 
                             <form
                               action={deleteRoleAction}
-                              method="post"
                               className="mt-3 flex items-center gap-2 justify-end"
                             >
                               <input type="hidden" name="id" value={r.id} />
+                              <input type="hidden" name="page" value={page} />
                               <Button
                                 type="submit"
                                 variant="destructive"

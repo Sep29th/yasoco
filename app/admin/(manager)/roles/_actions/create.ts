@@ -7,7 +7,10 @@ export async function createRoleAction(payload: {
   name: string;
   permissions: string[];
 }) {
-  await requireAuth();
+  const auth = await requireAuth();
+
+  if (!auth.permissions.includes("role:create"))
+    throw new Error("Không có quyền tạo vai trò");
 
   const name = String(payload?.name || "").trim();
   const permissions = Array.isArray(payload?.permissions)

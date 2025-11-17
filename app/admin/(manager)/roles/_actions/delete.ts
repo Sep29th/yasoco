@@ -1,18 +1,54 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { deleteRole } from "@/lib/role";
 import { requireAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 export async function deleteRoleAction(formData: FormData) {
-  await requireAuth();
+  const auth = await requireAuth();
 
-  const id = formData.get("id");
+  if (!auth.permissions.includes("role:delete")) {
+    redirect("/admin/forbidden");
+  }
 
-  if (typeof id !== "string") return;
+  const id = String(formData.get("id") ?? "").trim();
+  const page = String(formData.get("page") ?? "").trim();
 
-  await prisma.role.delete({ where: { id } });
+  const buildRedirectUrl = (error?: string) => {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (error) params.set("error", error);
 
-  // After deleting, navigate back to roles list
-  redirect("/admin/roles");
+    const query = params.toString();
+    return `/admin/roles${query ? `?${query}` : ""}`;
+  };
+
+  if (!id) {
+    redirect(buildRedirectUrl("Thiếu mã vai trò để xóa"));
+  }
+
+  try {
+    const deletedCount = await deleteRole(id);
+
+    if (deletedCount === 0) {
+      redirect(buildRedirectUrl("Vai trò không tồn tại hoặc đã bị xóa"));
+    }
+
+    redirect(buildRedirectUrl());
+  } catch (error) {
+    const isNextRedirectError =
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      (error as { digest?: string }).digest?.includes("NEXT_REDIRECT");
+
+    if (isNextRedirectError) {
+      throw error;
+    }
+
+    console.error("[deleteRoleAction] Failed to delete role", error);
+    const message =
+      error instanceof Error ? error.message : "Không thể xóa vai trò";
+    redirect(buildRedirectUrl(message));
+  }
 }
