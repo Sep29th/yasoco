@@ -1,17 +1,14 @@
 import { ModalWrapper } from "@/components/modal-wrapper";
-import { getRoleById } from "@/lib/role";
-import { RESOURCES } from "@/lib/constants/permission";
 import { Badge } from "@/components/ui/badge";
-import { determineLevel } from './_utils/determine-level';
+import { RESOURCES } from "@/lib/constants/permission";
+import { determineLevel } from "../_utils/determine-level";
+import { getRoleById } from "@/lib/role";
 
 type PropsType = {
-  params: Promise<{ id: string }>;
+  data: Awaited<ReturnType<typeof getRoleById>>;
 };
 
-export default async function RoleModal({ params }: PropsType) {
-  const { id } = await params;
-  const data = await getRoleById(id);
-
+export default function ModalContent({ data }: PropsType) {
   const permNames: string[] = (data.permissionRoles || [])
     .map((pr) => pr.permission.name)
     .filter(Boolean);

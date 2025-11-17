@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
@@ -13,9 +13,23 @@ export function ModalWrapper({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(t);
   }, []);
 
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
-    if (!next) router.back();
+    if (!next) {
+      // remove `modal` query param and navigate to the same path
+      try {
+        const params = new URLSearchParams(searchParams?.toString() || "");
+        params.delete("modal");
+        const qs = params.toString();
+        const url = qs ? `${pathname}?${qs}` : pathname || "/";
+        router.replace(url);
+      } catch {
+        router.back();
+      }
+    }
   };
 
   return (

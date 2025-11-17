@@ -29,7 +29,8 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
-import { getPaginationRoles } from "@/lib/role";
+import { getPaginationRoles, getRoleById } from "@/lib/role";
+import ModalContent from "./_components/modal-content";
 import { Badge } from "@/components/ui/badge";
 
 type Props = {
@@ -41,15 +42,17 @@ export default async function RolePage({ searchParams }: Props) {
 
   if (!auth.permissions.includes("role:read")) redirect("/admin/forbidden");
 
-  const page = Math.max(
-    1,
-    parseInt(((await searchParams).page as string) || "1", 10) || 1
-  );
+  const sp = await searchParams;
+  const page = Math.max(1, parseInt((sp.page as string) || "1", 10) || 1);
   const pageSize = 10;
 
   const { total, roles } = await getPaginationRoles(page, pageSize);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  // If `modal` query param is present, we'll render the modal overlay below
+  const spTyped = sp as Record<string, string | undefined>;
+  const modalId = String(spTyped.modal ?? "").trim();
 
   return (
     <div className="space-y-4">
@@ -84,7 +87,7 @@ export default async function RolePage({ searchParams }: Props) {
                 <TableCell>{new Date(r.createdAt).toLocaleString()}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Link href={`/admin/roles/${r.id}`}>
+                    <Link href={`/admin/roles?modal=${r.id}&page=${page}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -214,6 +217,13 @@ export default async function RolePage({ searchParams }: Props) {
           </PaginationContent>
         </Pagination>
       </nav>
+
+      {/* Modal overlay when ?modal=<id> is present */}
+      {modalId ? (
+        // fetch server-side data and render ModalContent
+        // ModalContent is a server component that renders ModalWrapper (client)
+        <ModalContent data={await getRoleById(modalId)} />
+      ) : null}
     </div>
   );
 }
