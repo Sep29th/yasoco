@@ -5,14 +5,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Level } from "../_types/level";
 import { inferLevelActions } from "../_utils/infer-level-action";
 import { ACCESS_LEVEL_MAP, RESOURCES } from "@/lib/constants/permission";
+import { permissionsToLevels } from "../_utils/permissions-to-levels";
 
 type Props = {
   onChange?: (permissions: string[]) => void;
   includeHiddenInputs?: boolean;
+  initialPermissions?: string[];
 };
 
-export default function PermissionsClient({ onChange, includeHiddenInputs }: Props) {
+export default function PermissionsClient({ onChange, includeHiddenInputs, initialPermissions }: Props) {
   const [levels, setLevels] = useState<Record<string, Level>>(() => {
+    if (initialPermissions && initialPermissions.length > 0) {
+      return permissionsToLevels(initialPermissions);
+    }
     const initial: Record<string, Level> = {};
     RESOURCES.forEach((r) => (initial[r.key] = null));
     return initial;

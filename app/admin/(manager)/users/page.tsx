@@ -4,12 +4,20 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Table,
-  TableHeader,
   TableBody,
-  TableRow,
-  TableHead,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Eye, Edit3, Trash2, Plus } from "lucide-react";
 import {
   Tooltip,
@@ -18,39 +26,29 @@ import {
 } from "@/components/ui/tooltip";
 import {
   Popover,
-  PopoverTrigger,
   PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
-import { deleteRoleAction } from "./_actions/delete";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
-} from "@/components/ui/pagination";
-import { getPaginationRoles, getRoleById } from "@/lib/role";
-import ModalContent from "./_components/modal-content";
-import { Badge } from "@/components/ui/badge";
+import { getPaginationUser, getUserById } from "@/lib/user";
+import { deleteUserAction } from "./_actions/delete";
+import UserModalContent from "./_components/modal-content";
 
 type Props = {
-  searchParams: Promise<{ page?: string; error?: string }>;
+  searchParams: Promise<{ page?: string; error?: string; modal?: string }>;
 };
 
-export default async function RolePage({ searchParams }: Props) {
+export default async function UsersPage({ searchParams }: Props) {
   const auth = await requireAuth();
 
-  if (!auth.permissions.includes("role:read")) redirect("/admin/forbidden");
+  if (!auth.permissions.includes("user:read")) redirect("/admin/forbidden");
 
   const sp = await searchParams;
   const page = Math.max(1, parseInt((sp.page as string) || "1", 10) || 1);
   const pageSize = 10;
 
-  const { total, roles } = await getPaginationRoles(page, pageSize);
-
+  const { total, users } = await getPaginationUser(page, pageSize);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  // If `modal` query param is present, we'll render the modal overlay below
   const spTyped = sp as Record<string, string | undefined>;
   const errorMessage =
     typeof spTyped.error === "string" ? spTyped.error.trim() : "";
@@ -62,8 +60,20 @@ export default async function RolePage({ searchParams }: Props) {
       timeStyle: "short",
     }).format(new Date(value));
 
+  const renderStatus = (isActive: boolean, isDeleted: boolean) => {
+    if (isDeleted) {
+      return <Badge variant="destructive">Đã xóa</Badge>;
+    }
+
+    if (!isActive) {
+      return <Badge variant="secondary">Đã khóa</Badge>;
+    }
+
+    return <Badge variant="outline">Đang hoạt động</Badge>;
+  };
+
   const modalData = modalId
-    ? await getRoleById(modalId).catch(() => null)
+    ? await getUserById(modalId).catch(() => null)
     : null;
 
   return (
@@ -74,16 +84,15 @@ export default async function RolePage({ searchParams }: Props) {
         </div>
       )}
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Vai trò</h1>
-
-        {auth.permissions.includes("role:create") && (
-          <Link href="/admin/roles/create" className="no-underline">
+        <h1 className="text-2xl font-semibold">Người dùng</h1>
+        {auth.permissions.includes("user:create") && (
+          <Link href="/admin/users/create" className="no-underline">
             <Button
               size="lg"
               variant="outline"
               className="cursor-pointer"
             >
-              <Plus className="size-4 mr-2" /> Tạo vai trò
+              <Plus className="size-4 mr-2" /> Thêm người dùng
             </Button>
           </Link>
         )}
@@ -93,22 +102,25 @@ export default async function RolePage({ searchParams }: Props) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Tên</TableHead>
+              <TableHead>Họ và tên</TableHead>
+              <TableHead>Số điện thoại</TableHead>
+              <TableHead>Trạng thái</TableHead>
               <TableHead>Tạo lúc</TableHead>
               <TableHead className="text-left">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
-            {roles.map((r) => (
-              <TableRow key={r.id}>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>{user.phone}</TableCell>
                 <TableCell>
-                  <Badge variant="outline">{r.name}</Badge>
+                  {renderStatus(Boolean(user.isActive), Boolean(user.isDeleted))}
                 </TableCell>
-                <TableCell>{formatDateTime(r.createdAt)}</TableCell>
+                <TableCell>{formatDateTime(user.createdAt)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Link href={`/admin/roles?modal=${r.id}&page=${page}`}>
+                    <Link href={`/admin/users?modal=${user.id}&page=${page}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -125,8 +137,8 @@ export default async function RolePage({ searchParams }: Props) {
                       </Tooltip>
                     </Link>
 
-                    {auth.permissions.includes("role:update") && (
-                      <Link href={`/admin/roles/${r.id}/edit`}>
+                    {auth.permissions.includes("user:update") && (
+                      <Link href={`/admin/users/${user.id}/edit`}>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -144,7 +156,7 @@ export default async function RolePage({ searchParams }: Props) {
                       </Link>
                     )}
 
-                    {auth.permissions.includes("role:delete") && (
+                    {auth.permissions.includes("user:delete") && (
                       <Tooltip>
                         <Popover>
                           <PopoverTrigger asChild>
@@ -161,14 +173,14 @@ export default async function RolePage({ searchParams }: Props) {
 
                           <PopoverContent className="w-[260px]" side="top">
                             <p className="text-sm">
-                              Bạn có chắc muốn xóa vai trò này không?
+                              Bạn có chắc muốn xóa người dùng này không?
                             </p>
 
                             <form
-                              action={deleteRoleAction}
+                              action={deleteUserAction}
                               className="mt-3 flex items-center gap-2 justify-end"
                             >
-                              <input type="hidden" name="id" value={r.id} />
+                              <input type="hidden" name="id" value={user.id} />
                               <input type="hidden" name="page" value={page} />
                               <Button
                                 type="submit"
@@ -191,13 +203,13 @@ export default async function RolePage({ searchParams }: Props) {
               </TableRow>
             ))}
 
-            {roles.length === 0 && (
+            {users.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={3}
-                  className="text-center px-4 py-6 text-gray-500"
+                  colSpan={5}
+                  className="text-center px-4 py-6 text-muted-foreground"
                 >
-                  Không có vai trò nào
+                  Không có người dùng nào
                 </TableCell>
               </TableRow>
             )}
@@ -218,13 +230,11 @@ export default async function RolePage({ searchParams }: Props) {
                 }
               />
             </PaginationItem>
-
             <PaginationItem>
               <span className="px-3 py-1 border rounded">
                 {page} / {totalPages}
               </span>
             </PaginationItem>
-
             <PaginationItem>
               <PaginationNext
                 href={`?page=${Math.min(totalPages, page + 1)}`}
@@ -239,8 +249,7 @@ export default async function RolePage({ searchParams }: Props) {
         </Pagination>
       </nav>
 
-      {/* Modal overlay when ?modal=<id> is present */}
-      {modalData ? <ModalContent data={modalData} /> : null}
+      {modalData ? <UserModalContent data={modalData} /> : null}
     </div>
   );
 }

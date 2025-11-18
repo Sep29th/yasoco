@@ -101,6 +101,16 @@ export const RESOURCES = [
   },
 ];
 
+export const PERMISSION_LABEL_MAP: Record<string, string> = RESOURCES.reduce(
+  (acc, resource) => {
+    resource.actions.forEach((action) => {
+      acc[action.value] = action.label;
+    });
+    return acc;
+  },
+  {} as Record<string, string>
+);
+
 export const ACCESS_LEVEL_MAP: Record<
   string,
   { viewer: string[]; editor: string[]; manager: string[] }

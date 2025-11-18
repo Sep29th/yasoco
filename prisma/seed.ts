@@ -1,6 +1,7 @@
 import { ALL_PERMISSION } from "@/lib/constants/permission";
 import { DaysOfWeek, PrismaClient } from "../lib/generated/prisma";
 import bcrypt from "bcrypt";
+import { SUPER_ADMIN_PASSWORD, SUPER_ADMIN_PHONE } from "@/lib/constants/user";
 
 const prisma = new PrismaClient();
 
@@ -23,12 +24,12 @@ async function seedSuperAdminAndRole() {
 
   console.log("Đang tạo/cập nhật người dùng SUPER_ADMIN...");
   const superAdmin = await prisma.user.upsert({
-    where: { phone: "0862973602" },
+    where: { phone: SUPER_ADMIN_PHONE },
     update: {},
     create: {
-      phone: "0862973602",
+      phone: SUPER_ADMIN_PHONE,
       name: superAdminName,
-      password: bcrypt.hashSync("nguyenchinhkiet", 10),
+      password: bcrypt.hashSync(SUPER_ADMIN_PASSWORD, 10),
       isActive: true,
       isDeleted: false,
     },

@@ -34,7 +34,7 @@ export function ModalWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[95vw] max-w-lg sm:max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogTitle className="sr-only">Modal</DialogTitle>
         {children}
         <DialogClose />
