@@ -116,18 +116,47 @@ model ExaminationSession {
   @@index([daysOfWeek])
 }
 
+enum ExaminationStatus {
+  
+}
+
 model Examination {
-  id          String   @id @default(uuid())
+  id          String            @id @default(uuid())
   kidName     String
   kidAge      Int
   kidGender   String
-  symptoms    String?
+  kidWeight   Int
   parentName  String
   parentPhone String
+  symptoms    String?
+  note        String?
+  diagnose    String?
+  services    Json[]            @default([])
+  medicine    Json[]            @default([])
   date        DateTime
+  status      ExaminationStatus
 
   @@index([parentPhone])
   @@index([date])
+}
+
+model Medicine {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  unit        String
+  price       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ActionLog {
