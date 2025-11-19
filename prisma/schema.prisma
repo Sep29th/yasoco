@@ -117,24 +117,41 @@ model ExaminationSession {
 }
 
 enum ExaminationStatus {
-  
+  BOOKED
+  WAITING
+  IN_PROGRESS
+  PENDING_PAYMENT
+  COMPLETED
+  CANCELLED
+}
+
+enum ExaminationType {
+  PRE_BOOKED
+  FOLLOW_UP
+  WALK_IN
 }
 
 model Examination {
   id          String            @id @default(uuid())
+  parentName  String
+  parentPhone String
   kidName     String
   kidAge      Int
   kidGender   String
-  kidWeight   Int
-  parentName  String
-  parentPhone String
+  kidWeight   Int?
   symptoms    String?
-  note        String?
   diagnose    String?
+  note        String?
   services    Json[]            @default([])
   medicine    Json[]            @default([])
   date        DateTime
   status      ExaminationStatus
+  type        ExaminationType
+  receivedBy  Json?
+  examinedBy  Json?
+  paidBy      Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   @@index([parentPhone])
   @@index([date])
