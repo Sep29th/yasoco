@@ -3,11 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { getUserById } from "@/lib/user";
 import { RESOURCES } from "@/lib/constants/permission";
 
-type Props = {
+type PropsType = {
   data: Awaited<ReturnType<typeof getUserById>>;
 };
 
-export default function UserModalContent({ data }: Props) {
+export default function UserModalContent({ data }: PropsType) {
   const permNames: string[] = data.permissionNames ?? [];
 
   return (

@@ -5,8 +5,10 @@ import { MenuItem } from "./_types/menu-item";
 import {
   CalendarClock,
   CalendarPlus2,
+  Cog,
   LayoutDashboard,
   Newspaper,
+  Pill,
   ShieldUser,
   Tag,
   Users,
@@ -66,7 +68,23 @@ export default async function ManagerLayout({
     menuData.push({
       icon: <CalendarClock className="group-hover:text-[#A6CF52]" />,
       label: "Giờ khám",
-      path: "/admin/examination-session",
+      path: "/admin/examination-sessions",
+    });
+  }
+
+  if (topicSet.has("service")) {
+    menuData.push({
+      icon: <Cog className="group-hover:text-[#A6CF52]" />,
+      label: "Dịch vụ",
+      path: "/admin/services",
+    });
+  }
+
+  if (topicSet.has("medicine")) {
+    menuData.push({
+      icon: <Pill className="group-hover:text-[#A6CF52]" />,
+      label: "Thuốc",
+      path: "/admin/medicines",
     });
   }
 
@@ -74,7 +92,7 @@ export default async function ManagerLayout({
     menuData.push({
       icon: <Tag className="group-hover:text-[#A6CF52]" />,
       label: "Chủ đề",
-      path: "/admin/tag",
+      path: "/admin/tags",
     });
   }
 
@@ -82,7 +100,7 @@ export default async function ManagerLayout({
     menuData.push({
       icon: <Newspaper className="group-hover:text-[#A6CF52]" />,
       label: "Bài viết",
-      path: "/admin/article",
+      path: "/admin/articles",
     });
   }
 

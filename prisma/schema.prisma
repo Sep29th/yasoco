@@ -132,26 +132,26 @@ enum ExaminationType {
 }
 
 model Examination {
-  id          String            @id @default(uuid())
-  parentName  String
-  parentPhone String
-  kidName     String
-  kidAge      Int
-  kidGender   String
-  kidWeight   Int?
-  symptoms    String?
-  diagnose    String?
-  note        String?
-  services    Json[]            @default([])
-  medicine    Json[]            @default([])
-  date        DateTime
-  status      ExaminationStatus
-  type        ExaminationType
-  receivedBy  Json?
-  examinedBy  Json?
-  paidBy      Json?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id           String            @id @default(uuid())
+  parentName   String
+  parentPhone  String
+  kidName      String
+  kidBirthDate DateTime
+  kidGender    Boolean // true is male
+  kidWeight    Int?
+  symptoms     String?
+  diagnose     String?
+  note         String?
+  services     Json[]            @default([])
+  medicine     Json[]            @default([])
+  date         DateTime
+  status       ExaminationStatus
+  type         ExaminationType
+  receivedBy   Json?
+  examinedBy   Json?
+  paidBy       Json?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   @@index([parentPhone])
   @@index([date])
@@ -174,6 +174,11 @@ model Service {
   price       Float
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model ExaminationFee {
+  id    String @id @default(uuid())
+  value Int
 }
 
 model ActionLog {

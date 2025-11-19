@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
   PaginationContent,
@@ -29,25 +28,32 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { getPaginationUser, getUserById } from "@/lib/user";
-import { deleteUserAction } from "./_actions/delete";
-import UserModalContent from "./_components/modal-content";
+import { getPaginationServices, getServiceById } from "@/lib/service";
+import { getExaminationFee } from "@/lib/examination-fee";
+import { deleteServiceAction } from "./_actions/delete";
+import ServiceModalContent from "./_components/modal-content";
+import ExaminationFeeClient from "./_components/examination-fee-client";
 
 type PropsType = {
   searchParams: Promise<{ page?: string; error?: string; modal?: string }>;
 };
 
-export default async function UsersPage({ searchParams }: PropsType) {
+export default async function ServicesPage({ searchParams }: PropsType) {
   const auth = await requireAuth();
 
-  if (!auth.permissions.includes("user:read")) redirect("/admin/forbidden");
+  if (!auth.permissions.includes("service:read")) {
+    redirect("/admin/forbidden");
+  }
 
   const sp = await searchParams;
   const page = Math.max(1, parseInt((sp.page as string) || "1", 10) || 1);
   const pageSize = 10;
 
-  const { total, users } = await getPaginationUser(page, pageSize);
+  const { total, services } = await getPaginationServices(page, pageSize);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const fee = await getExaminationFee();
+  const canEditFee = auth.permissions.includes("service:update");
 
   const spTyped = sp as Record<string, string | undefined>;
   const errorMessage =
@@ -60,20 +66,14 @@ export default async function UsersPage({ searchParams }: PropsType) {
       timeStyle: "short",
     }).format(new Date(value));
 
-  const renderStatus = (isActive: boolean, isDeleted: boolean) => {
-    if (isDeleted) {
-      return <Badge variant="destructive">Đã xóa</Badge>;
-    }
-
-    if (!isActive) {
-      return <Badge variant="secondary">Đã khóa</Badge>;
-    }
-
-    return <Badge variant="outline">Đang hoạt động</Badge>;
-  };
+  const formatPrice = (value: number) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
 
   const modalData = modalId
-    ? await getUserById(modalId).catch(() => null)
+    ? await getServiceById(modalId).catch(() => null)
     : null;
 
   return (
@@ -83,44 +83,51 @@ export default async function UsersPage({ searchParams }: PropsType) {
           {errorMessage}
         </div>
       )}
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Người dùng</h1>
-        {auth.permissions.includes("user:create") && (
-          <Link href="/admin/users/create" className="no-underline">
-            <Button
-              size="lg"
-              variant="outline"
-              className="cursor-pointer"
-            >
-              <Plus className="size-4 mr-2" /> Thêm người dùng
-            </Button>
-          </Link>
-        )}
+
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-semibold">Dịch vụ</h1>
+        <div className="flex items-center gap-3">
+          <ExaminationFeeClient
+            value={fee ? fee.value : null}
+            canEdit={canEditFee}
+          />
+          {auth.permissions.includes("service:create") && (
+            <Link href="/admin/services/create" className="no-underline">
+              <Button
+                size="lg"
+                variant="outline"
+                className="cursor-pointer"
+              >
+                <Plus className="size-4 mr-2" /> Thêm dịch vụ
+              </Button>
+            </Link>
+          )}
+        </div>
       </header>
 
       <div className="bg-white rounded shadow">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Họ và tên</TableHead>
-              <TableHead>Số điện thoại</TableHead>
-              <TableHead>Trạng thái</TableHead>
+              <TableHead>Tên dịch vụ</TableHead>
+              <TableHead>Mô tả</TableHead>
+              <TableHead>Giá</TableHead>
               <TableHead>Tạo lúc</TableHead>
               <TableHead className="text-left">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.phone}</TableCell>
-                <TableCell>
-                  {renderStatus(Boolean(user.isActive), Boolean(user.isDeleted))}
-                </TableCell>
-                <TableCell>{formatDateTime(user.createdAt)}</TableCell>
+            {services.map((service) => (
+              <TableRow key={service.id}>
+                <TableCell className="font-medium">{service.name}</TableCell>
+                <TableCell>{service.description || "-"}</TableCell>
+                <TableCell>{formatPrice(service.price)}</TableCell>
+                <TableCell>{formatDateTime(service.createdAt)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Link href={`/admin/users?modal=${user.id}&page=${page}`}>
+                    <Link
+                      href={`/admin/services?modal=${service.id}&page=${page}`}
+                    >
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -137,8 +144,8 @@ export default async function UsersPage({ searchParams }: PropsType) {
                       </Tooltip>
                     </Link>
 
-                    {auth.permissions.includes("user:update") && (
-                      <Link href={`/admin/users/${user.id}/edit`}>
+                    {auth.permissions.includes("service:update") && (
+                      <Link href={`/admin/services/${service.id}/edit`}>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -156,7 +163,7 @@ export default async function UsersPage({ searchParams }: PropsType) {
                       </Link>
                     )}
 
-                    {auth.permissions.includes("user:delete") && (
+                    {auth.permissions.includes("service:delete") && (
                       <Tooltip>
                         <Popover>
                           <PopoverTrigger asChild>
@@ -173,14 +180,14 @@ export default async function UsersPage({ searchParams }: PropsType) {
 
                           <PopoverContent className="w-[260px]" side="top">
                             <p className="text-sm">
-                              Bạn có chắc muốn xóa người dùng này không?
+                              Bạn có chắc muốn xóa dịch vụ này không?
                             </p>
 
                             <form
-                              action={deleteUserAction}
+                              action={deleteServiceAction}
                               className="mt-3 flex items-center gap-2 justify-end"
                             >
-                              <input type="hidden" name="id" value={user.id} />
+                              <input type="hidden" name="id" value={service.id} />
                               <input type="hidden" name="page" value={page} />
                               <Button
                                 type="submit"
@@ -203,13 +210,13 @@ export default async function UsersPage({ searchParams }: PropsType) {
               </TableRow>
             ))}
 
-            {users.length === 0 && (
+            {services.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={5}
                   className="text-center px-4 py-6 text-muted-foreground"
                 >
-                  Không có người dùng nào
+                  Không có dịch vụ nào
                 </TableCell>
               </TableRow>
             )}
@@ -249,7 +256,8 @@ export default async function UsersPage({ searchParams }: PropsType) {
         </Pagination>
       </nav>
 
-      {modalData ? <UserModalContent data={modalData} /> : null}
+      {modalData ? <ServiceModalContent data={modalData} /> : null}
     </div>
   );
 }
+

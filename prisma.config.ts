@@ -8,4 +8,9 @@ export default defineConfig({
     path: path.join(__dirname, "prisma", "migrations"),
     seed: 'ts-node --compiler-options {"module":"CommonJS"} prisma/seed.ts',
   },
+  datasource: {
+    url:
+      process.env.DATABASE_URL ??
+      "postgresql://yasoco:yasoco@localhost:5432/yasoco?schema=public",
+  },
 });

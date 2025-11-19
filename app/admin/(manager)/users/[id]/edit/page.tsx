@@ -6,11 +6,11 @@ import UserFormClient from "../../_components/user-form-client";
 import { getAssignableRoles } from "@/lib/role";
 import { getUserById } from "@/lib/user";
 
-type Props = {
+type PropsType = {
   params: Promise<{ id: string }>;
 };
 
-export default async function EditUserPage({ params }: Props) {
+export default async function EditUserPage({ params }: PropsType) {
   const auth = await requireAuth();
 
   if (!auth.permissions.includes("user:update")) redirect("/admin/forbidden");

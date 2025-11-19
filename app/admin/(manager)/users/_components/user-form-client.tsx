@@ -9,15 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { RESOURCES, ACCESS_LEVEL_MAP } from "@/lib/constants/permission";
+import { RESOURCES } from "@/lib/constants/permission";
+import { RoleOption } from "../_types/role-option";
+import { getAccessLevelLabel } from "../_utils/get-access-level-label";
 
-type RoleOption = {
-  id: string;
-  name: string;
-  permissionNames: string[];
-};
-
-type UserFormClientProps = {
+type PropsType = {
   mode: "create" | "edit";
   userId?: string;
   initialValues: {
@@ -30,23 +26,12 @@ type UserFormClientProps = {
   availableRoles: RoleOption[];
 };
 
-const getAccessLevelLabel = (resourceKey: string, perms: string[]) => {
-  const map = ACCESS_LEVEL_MAP[resourceKey];
-  if (!map) return null;
-
-  if (map.manager.every((p) => perms.includes(p))) return "Quyền quản lý";
-  if (map.editor.every((p) => perms.includes(p))) return "Quyền sửa";
-  if (map.viewer.every((p) => perms.includes(p))) return "Quyền xem";
-
-  return "Tùy chỉnh";
-};
-
 export default function UserFormClient({
   mode,
   userId,
   initialValues,
   availableRoles,
-}: UserFormClientProps) {
+}: PropsType) {
   const router = useRouter();
   const [name, setName] = useState(initialValues.name);
   const [phone, setPhone] = useState(initialValues.phone);
@@ -129,7 +114,10 @@ export default function UserFormClient({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <form
+      onSubmit={handleSubmit}
+      className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+    >
       <div className="lg:col-span-1 space-y-6">
         <div className="bg-white rounded shadow p-6 space-y-4">
           <div className="space-y-2">
@@ -161,7 +149,9 @@ export default function UserFormClient({
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === "create" ? "••••••" : "Để trống nếu không đổi"}
+              placeholder={
+                mode === "create" ? "••••••" : "Để trống nếu không đổi"
+              }
             />
             {mode === "edit" && (
               <p className="text-xs text-muted-foreground">
@@ -355,4 +345,3 @@ export default function UserFormClient({
     </form>
   );
 }
-

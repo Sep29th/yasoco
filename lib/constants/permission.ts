@@ -19,6 +19,16 @@ export const ALL_PERMISSION = [
   "examination-session:update",
   "examination-session:delete",
 
+  "service:read",
+  "service:create",
+  "service:update",
+  "service:delete",
+
+  "medicine:read",
+  "medicine:create",
+  "medicine:update",
+  "medicine:delete",
+
   "article:read",
   "article:create",
   "article:update",
@@ -39,8 +49,14 @@ export const RESOURCES = [
     actions: [
       { value: "user:read", label: "Xem danh sách người dùng" },
       { value: "user:create", label: "Tạo tài khoản người dùng mới" },
-      { value: "user:update", label: "Sửa thông tin người dùng trong hệ thống" },
-      { value: "user:delete", label: "Xóa tài khoản người dùng trong hệ thống" },
+      {
+        value: "user:update",
+        label: "Sửa thông tin người dùng trong hệ thống",
+      },
+      {
+        value: "user:delete",
+        label: "Xóa tài khoản người dùng trong hệ thống",
+      },
     ],
   },
   {
@@ -70,10 +86,41 @@ export const RESOURCES = [
     label: "Giờ khám",
     description: "Các quyền đối với giờ khám",
     actions: [
-      { value: "examination-session:read", label: "Xem các giờ khám có thể đặt lịch" },
-      { value: "examination-session:create", label: "Tạo giờ khám có thể đặt lịch" },
-      { value: "examination-session:update", label: "Sửa giờ khám có thể đặt lịch" },
+      {
+        value: "examination-session:read",
+        label: "Xem các giờ khám có thể đặt lịch",
+      },
+      {
+        value: "examination-session:create",
+        label: "Tạo giờ khám có thể đặt lịch",
+      },
+      {
+        value: "examination-session:update",
+        label: "Sửa giờ khám có thể đặt lịch",
+      },
       { value: "examination-session:delete", label: "Xóa giờ khám" },
+    ],
+  },
+  {
+    key: "service",
+    label: "Dịch vụ",
+    description: "Các quyền đối với dịch vụ",
+    actions: [
+      { value: "service:read", label: "Xem danh sách dịch vụ" },
+      { value: "service:create", label: "Tạo dịch vụ mới" },
+      { value: "service:update", label: "Sửa thông tin dịch vụ" },
+      { value: "service:delete", label: "Xóa dịch vụ" },
+    ],
+  },
+  {
+    key: "medicine",
+    label: "Thuốc",
+    description: "Các quyền đối với thuốc",
+    actions: [
+      { value: "medicine:read", label: "Xem danh sách thuốc" },
+      { value: "medicine:create", label: "Tạo thuốc mới" },
+      { value: "medicine:update", label: "Sửa thông tin thuốc" },
+      { value: "medicine:delete", label: "Xóa thuốc" },
     ],
   },
   {
@@ -147,6 +194,26 @@ export const ACCESS_LEVEL_MAP: Record<
       "examination-session:create",
       "examination-session:update",
       "examination-session:delete",
+    ],
+  },
+  service: {
+    viewer: ["service:read"],
+    editor: ["service:read", "service:create", "service:update"],
+    manager: [
+      "service:read",
+      "service:create",
+      "service:update",
+      "service:delete",
+    ],
+  },
+  medicine: {
+    viewer: ["medicine:read"],
+    editor: ["medicine:read", "medicine:create", "medicine:update"],
+    manager: [
+      "medicine:read",
+      "medicine:create",
+      "medicine:update",
+      "medicine:delete",
     ],
   },
   article: {

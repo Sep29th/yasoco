@@ -3,7 +3,7 @@ type PropsType = {
   modal: React.ReactNode;
 };
 
-export default function UsersLayout({ children, modal }: PropsType) {
+export default function ServicesLayout({ children, modal }: PropsType) {
   return (
     <>
       {children}

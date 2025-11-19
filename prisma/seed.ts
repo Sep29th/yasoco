@@ -1,7 +1,7 @@
-import { ALL_PERMISSION } from "@/lib/constants/permission";
+import { ALL_PERMISSION } from "../lib/constants/permission";
 import { DaysOfWeek, PrismaClient } from "../lib/generated/prisma";
 import bcrypt from "bcrypt";
-import { SUPER_ADMIN_PASSWORD, SUPER_ADMIN_PHONE } from "@/lib/constants/user";
+import { SUPER_ADMIN_PASSWORD, SUPER_ADMIN_PHONE } from "../lib/constants/user";
 
 const prisma = new PrismaClient();
 
@@ -129,6 +129,20 @@ async function seedExaminationSessions() {
   console.log("Tạo các khung giờ khám thành công.");
 }
 
+async function seedExaminationFee() {
+  console.log("Đang tạo giá khởi tạo của dịch vụ khám");
+
+  const checkExisted = await prisma.examinationFee.findMany();
+
+  if (checkExisted.length != 0) return;
+
+  await prisma.examinationFee.create({
+    data: {
+      value: 20000,
+    },
+  });
+}
+
 /**
  * Hàm main để chạy tất cả các bước seed
  */
@@ -138,6 +152,7 @@ async function main() {
   const superAdminRole = await seedSuperAdminAndRole();
   await seedPermissions(superAdminRole.id);
   await seedExaminationSessions();
+  await seedExaminationFee();
 
   console.log("✅ Quá trình seed hoàn tất thành công!");
 }
