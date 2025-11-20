@@ -7,13 +7,13 @@ import { inferLevelActions } from "../_utils/infer-level-action";
 import { ACCESS_LEVEL_MAP, RESOURCES } from "@/lib/constants/permission";
 import { permissionsToLevels } from "../_utils/permissions-to-levels";
 
-type Props = {
+type PropsType = {
   onChange?: (permissions: string[]) => void;
   includeHiddenInputs?: boolean;
   initialPermissions?: string[];
 };
 
-export default function PermissionsClient({ onChange, includeHiddenInputs, initialPermissions }: Props) {
+export default function PermissionsClient({ onChange, includeHiddenInputs, initialPermissions }: PropsType) {
   const [levels, setLevels] = useState<Record<string, Level>>(() => {
     if (initialPermissions && initialPermissions.length > 0) {
       return permissionsToLevels(initialPermissions);

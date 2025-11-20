@@ -7,13 +7,13 @@ import { updateRoleAction } from "../_actions/update";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-type Props = {
+type PropsType = {
   roleId: string;
   initialName: string;
   initialPermissions: string[];
 };
 
-export default function EditRoleClient({ roleId, initialName, initialPermissions }: Props) {
+export default function EditRoleClient({ roleId, initialName, initialPermissions }: PropsType) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
   const [permissions, setPermissions] = useState<string[]>(initialPermissions);

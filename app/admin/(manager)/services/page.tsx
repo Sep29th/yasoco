@@ -84,19 +84,22 @@ export default async function ServicesPage({ searchParams }: PropsType) {
         </div>
       )}
 
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Dịch vụ</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3">
           <ExaminationFeeClient
             value={fee ? fee.value : null}
             canEdit={canEditFee}
           />
           {auth.permissions.includes("service:create") && (
-            <Link href="/admin/services/create" className="no-underline">
+            <Link
+              href="/admin/services/create"
+              className="no-underline w-full sm:w-auto"
+            >
               <Button
                 size="lg"
                 variant="outline"
-                className="cursor-pointer"
+                className="cursor-pointer w-full sm:w-auto"
               >
                 <Plus className="size-4 mr-2" /> Thêm dịch vụ
               </Button>

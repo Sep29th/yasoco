@@ -7,12 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateExaminationFeeAction } from "../_actions/update-examination-fee";
 
-type Props = {
+type PropsType = {
   value: number | null;
   canEdit: boolean;
 };
 
-export default function ExaminationFeeClient({ value, canEdit }: Props) {
+export default function ExaminationFeeClient({ value, canEdit }: PropsType) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [input, setInput] = useState(
