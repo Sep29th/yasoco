@@ -150,6 +150,8 @@ model Examination {
   receivedBy   Json?
   examinedBy   Json?
   paidBy       Json?
+  cancelledBy  Json?
+  history      Json[]            @default([])
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 

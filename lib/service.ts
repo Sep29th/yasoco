@@ -90,3 +90,11 @@ export const deleteService = async (id: string) => {
 
   return result.count;
 };
+
+export const getAllServices = async () => {
+  const services = await prisma.service.findMany({
+    orderBy: { name: "asc" },
+  });
+
+  return services;
+};

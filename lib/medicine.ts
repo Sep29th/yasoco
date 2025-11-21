@@ -103,3 +103,11 @@ export const deleteMedicine = async (id: string) => {
 
   return result.count;
 };
+
+export const getAllMedicines = async () => {
+  const medicines = await prisma.medicine.findMany({
+    orderBy: { name: "asc" },
+  });
+
+  return medicines;
+};
