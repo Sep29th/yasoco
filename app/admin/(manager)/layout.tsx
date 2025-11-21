@@ -1,115 +1,115 @@
-import { getCurrentUser, requireAuth } from "@/lib/auth";
-import { Metadata } from "next";
+import {getCurrentUser, requireAuth} from "@/lib/auth";
+import {Metadata} from "next";
 import LayoutClient from "./_components/layout-client";
-import { MenuItem } from "./_types/menu-item";
+import {MenuItem} from "./_types/menu-item";
 import {
-  CalendarClock,
-  CalendarPlus2,
-  Cog,
-  LayoutDashboard,
-  Newspaper,
-  Pill,
-  ShieldUser,
-  Tag,
-  Users,
+	CalendarClock,
+	CalendarPlus2,
+	Cog,
+	LayoutDashboard,
+	Newspaper,
+	Pill,
+	ShieldUser,
+	Tag,
+	Users,
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Phòng khám Yasoco | Quản lý",
-  description:
-    "Phòng khám Yasoco - Nơi chăm sóc sức khỏe toàn diện cho trẻ em.",
+	title: "Phòng khám Yasoco | Quản lý",
+	description:
+		"Phòng khám Yasoco - Nơi chăm sóc sức khỏe toàn diện cho trẻ em.",
 };
 
-export default async function ManagerLayout({
-  children,
-  modal,
-}: Readonly<{ children: React.ReactNode; modal: React.ReactNode }>) {
-  const auth = await requireAuth();
-  const currentUser = await getCurrentUser();
+type PropsType = {
+	children: React.ReactNode;
+}
 
-  const menuData: MenuItem[] = [
-    {
-      icon: <LayoutDashboard className="group-hover:text-[#A6CF52]" />,
-      label: "Tổng quan",
-      path: "/admin",
-    },
-  ];
+export default async function ManagerLayout({children}: PropsType) {
+	const auth = await requireAuth();
+	const currentUser = await getCurrentUser();
 
-  // const permissionsSet = new Set(auth.permissions);
-  const topicSet = new Set(
-    auth.permissions.map((permisson) => permisson.split(":")[0])
-  );
+	const menuData: MenuItem[] = [
+		{
+			icon: <LayoutDashboard className="group-hover:text-[#A6CF52]"/>,
+			label: "Tổng quan",
+			path: "/admin",
+		},
+	];
 
-  if (topicSet.has("role")) {
-    menuData.push({
-      icon: <ShieldUser className="group-hover:text-[#A6CF52]" />,
-      label: "Vai trò",
-      path: "/admin/roles",
-    });
-  }
+	// const permissionsSet = new Set(auth.permissions);
+	const topicSet = new Set(
+		auth.permissions.map((permisson) => permisson.split(":")[0])
+	);
 
-  if (topicSet.has("user")) {
-    menuData.push({
-      icon: <Users className="group-hover:text-[#A6CF52]" />,
-      label: "Người dùng",
-      path: "/admin/users",
-    });
-  }
+	if (topicSet.has("role")) {
+		menuData.push({
+			icon: <ShieldUser className="group-hover:text-[#A6CF52]"/>,
+			label: "Vai trò",
+			path: "/admin/roles",
+		});
+	}
 
-  if (topicSet.has("examination")) {
-    menuData.push({
-      icon: <CalendarPlus2 className="group-hover:text-[#A6CF52]" />,
-      label: "Lịch khám",
-      path: "/admin/examinations",
-    });
-  }
+	if (topicSet.has("user")) {
+		menuData.push({
+			icon: <Users className="group-hover:text-[#A6CF52]"/>,
+			label: "Người dùng",
+			path: "/admin/users",
+		});
+	}
 
-  if (topicSet.has("examination-session")) {
-    menuData.push({
-      icon: <CalendarClock className="group-hover:text-[#A6CF52]" />,
-      label: "Giờ khám",
-      path: "/admin/examination-sessions",
-    });
-  }
+	if (topicSet.has("examination")) {
+		menuData.push({
+			icon: <CalendarPlus2 className="group-hover:text-[#A6CF52]"/>,
+			label: "Lịch khám",
+			path: "/admin/examinations",
+		});
+	}
 
-  if (topicSet.has("service")) {
-    menuData.push({
-      icon: <Cog className="group-hover:text-[#A6CF52]" />,
-      label: "Dịch vụ",
-      path: "/admin/services",
-    });
-  }
+	if (topicSet.has("examination-session")) {
+		menuData.push({
+			icon: <CalendarClock className="group-hover:text-[#A6CF52]"/>,
+			label: "Giờ khám",
+			path: "/admin/examination-sessions",
+		});
+	}
 
-  if (topicSet.has("medicine")) {
-    menuData.push({
-      icon: <Pill className="group-hover:text-[#A6CF52]" />,
-      label: "Thuốc",
-      path: "/admin/medicines",
-    });
-  }
+	if (topicSet.has("service")) {
+		menuData.push({
+			icon: <Cog className="group-hover:text-[#A6CF52]"/>,
+			label: "Dịch vụ",
+			path: "/admin/services",
+		});
+	}
 
-  if (topicSet.has("tag")) {
-    menuData.push({
-      icon: <Tag className="group-hover:text-[#A6CF52]" />,
-      label: "Chủ đề",
-      path: "/admin/tags",
-    });
-  }
+	if (topicSet.has("medicine")) {
+		menuData.push({
+			icon: <Pill className="group-hover:text-[#A6CF52]"/>,
+			label: "Thuốc",
+			path: "/admin/medicines",
+		});
+	}
 
-  if (topicSet.has("article")) {
-    menuData.push({
-      icon: <Newspaper className="group-hover:text-[#A6CF52]" />,
-      label: "Bài viết",
-      path: "/admin/articles",
-    });
-  }
+	if (topicSet.has("tag")) {
+		menuData.push({
+			icon: <Tag className="group-hover:text-[#A6CF52]"/>,
+			label: "Chủ đề",
+			path: "/admin/tags",
+		});
+	}
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <LayoutClient menuData={menuData} currentUser={currentUser}>
-        {children}
-        {modal}
-      </LayoutClient>
-    </div>
-  );
+	if (topicSet.has("article")) {
+		menuData.push({
+			icon: <Newspaper className="group-hover:text-[#A6CF52]"/>,
+			label: "Bài viết",
+			path: "/admin/articles",
+		});
+	}
+
+	return (
+		<div className="flex h-screen bg-gray-50">
+			<LayoutClient menuData={menuData} currentUser={currentUser}>
+				{children}
+			</LayoutClient>
+		</div>
+	);
 }

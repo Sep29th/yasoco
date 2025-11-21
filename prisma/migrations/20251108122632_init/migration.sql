@@ -1,3 +1,5 @@
+SET TIMEZONE = "Asia/Ho_Chi_Minh";
+
 -- CreateEnum
 CREATE TYPE "DaysOfWeek" AS ENUM ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY');
 
