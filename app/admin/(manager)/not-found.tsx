@@ -11,7 +11,7 @@ export default function NotFound() {
         className="max-w-full"
         priority
       />
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 items-center">
         <h1 className="text-4xl font-bold tracking-tight">
           Ôi, có vẻ bạn đã đi lạc!
         </h1>

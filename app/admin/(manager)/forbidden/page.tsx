@@ -11,7 +11,7 @@ export default function Forbidden() {
         className="max-w-full"
         priority
       />
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 items-center">
         <h1 className="text-4xl font-bold tracking-tight">
           Bạn không có quyền truy cập trang này!
         </h1>

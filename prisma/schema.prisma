@@ -132,28 +132,28 @@ enum ExaminationType {
 }
 
 model Examination {
-  id           String            @id @default(uuid())
-  parentName   String
-  parentPhone  String
-  kidName      String
-  kidBirthDate DateTime
-  kidGender    Boolean // true is male
-  kidWeight    Int?
-  symptoms     String?
-  diagnose     String?
-  note         String?
-  services     Json[]            @default([])
-  medicine     Json[]            @default([])
-  date         DateTime
-  status       ExaminationStatus
-  type         ExaminationType
-  receivedBy   Json?
-  examinedBy   Json?
-  paidBy       Json?
-  cancelledBy  Json?
-  history      Json[]            @default([])
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  id             String            @id @default(uuid())
+  parentName     String
+  parentPhone    String
+  kidName        String
+  kidBirthDate   DateTime
+  kidGender      Boolean // true is male
+  kidWeight      Int?
+  symptoms       Json?
+  diagnose       Json?
+  note           Json?
+  services       Json[]            @default([])
+  medicines      Json[]            @default([])
+  date           DateTime
+  status         ExaminationStatus
+  type           ExaminationType
+  receivedBy     Json?
+  examinedBy     Json?
+  paidBy         Json?
+  cancelledBy    Json?
+  examinationFee Int?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
   @@index([parentPhone])
   @@index([date])
@@ -198,7 +198,7 @@ model Article {
   slug           String?                  @unique
   excerpt        String?
   coverImage     String?
-  content        Json[]
+  content        Json?
   contentText    String?
   searchVector   Unsupported("tsvector")?
   authorId       String
