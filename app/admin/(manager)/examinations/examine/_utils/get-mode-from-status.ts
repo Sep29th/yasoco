@@ -1,5 +1,4 @@
 import { ExaminationStatus } from "@/lib/generated/prisma";
-
 export const getModeFromStatus = (
 	status?: ExaminationStatus
 ): "receive" | "examine" | "pay" => {

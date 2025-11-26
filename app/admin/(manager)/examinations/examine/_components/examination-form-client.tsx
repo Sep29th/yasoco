@@ -1,12 +1,9 @@
 "use client";
-
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { JSONContent } from "@tiptap/react";
-
-import Selector, { SelectedItem } from "@/components/selector";
+import Selector from "@/components/selector";
 import TiptapEditor from "@/components/tiptap-editor";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -31,13 +28,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	ExaminationStatus,
-	ExaminationType,
-	Medicine,
-	Service,
-} from "@/lib/generated/prisma";
-import { JsonValue } from "@/lib/generated/prisma/runtime/library";
+import { Examination, Medicine, Service } from "@/lib/generated/prisma";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Printer, Ban } from "lucide-react";
 import ExaminationTypeBadge from "../../_components/examination-type-badge";
@@ -49,36 +40,30 @@ import receiveAction from "../_actions/receive";
 import { Spinner } from "@/components/ui/spinner";
 import examineAction from "../_actions/examine";
 import payAction from "../_actions/pay";
-
+import cancelExamination from "../../_actions/cancel";
+import updateStatus from "../_actions/update-status";
 type PropsType = {
-	initialFormValue: {
-		id?: string;
-		parentName?: string;
-		parentPhone?: string;
-		kidName?: string;
-		kidGender?: boolean;
-		kidBirthDate?: Date;
-		kidWeight?: number | null;
-		symptoms?: JsonValue;
-		diagnose?: JsonValue;
-		services?: JsonValue[];
-		medicines?: JsonValue[];
-		note?: JsonValue;
-		status?: ExaminationStatus;
-		type?: ExaminationType;
-	};
+	initialFormValue: Partial<
+		Omit<
+			Examination,
+			| "bookedBy"
+			| "cancelledBy"
+			| "createdAt"
+			| "date"
+			| "examinationFee"
+			| "examinedBy"
+			| "paidBy"
+			| "receivedBy"
+			| "updatedAt"
+		>
+	>;
 	data: {
-		medicines: (Omit<Medicine, "createdAt" | "updatedAt"> & {
-			description?: string;
-		})[];
-		services: (Omit<Service, "createdAt" | "updatedAt"> & {
-			description?: string;
-		})[];
+		medicines: Omit<Medicine, "createdAt" | "updatedAt">[];
+		services: Omit<Service, "createdAt" | "updatedAt">[];
 		examinationFee: number;
 	};
 	returnTo: string;
 };
-
 export default function ExaminationFormClient({
 	initialFormValue,
 	data,
@@ -88,9 +73,7 @@ export default function ExaminationFormClient({
 		() => getModeFromStatus(initialFormValue.status),
 		[initialFormValue.status]
 	);
-
 	const schema = useMemo(() => createFormSchema(mode), [mode]);
-
 	const form = useForm<FormValues>({
 		resolver: zodResolver(schema),
 		defaultValues: {
@@ -100,20 +83,17 @@ export default function ExaminationFormClient({
 			kidGender: initialFormValue.kidGender === false ? "female" : "male",
 			kidBirthDate: initialFormValue.kidBirthDate || new Date(),
 			kidWeight: initialFormValue.kidWeight || 0,
-			symptoms: (initialFormValue.symptoms as JSONContent) || undefined,
-			diagnose: (initialFormValue.diagnose as JSONContent) || undefined,
-			services: (initialFormValue.services as SelectedItem[]) || [],
-			medicines: (initialFormValue.medicines as SelectedItem[]) || [],
-			note: (initialFormValue.note as JSONContent) || undefined,
+			symptoms: initialFormValue.symptoms || undefined,
+			diagnose: initialFormValue.diagnose || undefined,
+			services: initialFormValue.services || [],
+			medicines: initialFormValue.medicines || [],
+			note: initialFormValue.note || undefined,
 		},
 	});
-
 	const servicesWatch = useWatch({ control: form.control, name: "services" });
 	const medicinesWatch = useWatch({ control: form.control, name: "medicines" });
-
 	const services = useMemo(() => servicesWatch || [], [servicesWatch]);
 	const medicines = useMemo(() => medicinesWatch || [], [medicinesWatch]);
-
 	const isDisabled = useMemo(() => {
 		switch (mode) {
 			case "receive":
@@ -154,7 +134,6 @@ export default function ExaminationFormClient({
 				};
 		}
 	}, [mode]);
-
 	const totalAmount = useMemo(() => {
 		const totalServicePrice = services.reduce(
 			(acc, item) => acc + (item.price || 0) * item.quantity,
@@ -166,18 +145,16 @@ export default function ExaminationFormClient({
 		);
 		return totalServicePrice + totalMedicinePrice + data.examinationFee;
 	}, [services, medicines, data.examinationFee]);
-
 	const serviceOptions = useMemo(
 		() =>
 			data.services.map((s) => ({
 				id: s.id,
 				name: s.name,
 				price: s.price,
-				description: s.description,
+				description: s.description || undefined,
 			})),
 		[data.services]
 	);
-
 	const medicineOptions = useMemo(
 		() =>
 			data.medicines.map((m) => ({
@@ -185,34 +162,38 @@ export default function ExaminationFormClient({
 				name: m.name,
 				price: m.price,
 				unit: m.unit,
-				description: m.description,
+				description: m.description || undefined,
 			})),
 		[data.medicines]
 	);
-
 	const [isSubmitting, setIsSubmitting] = useState(false);
-
+	const [isCancelling, startTransition] = useTransition();
+	const needToBackStatusRef = useRef(true);
+	const [isBacking, startBackingTransition] = useTransition();
+	const handleCancel = () => {
+		needToBackStatusRef.current = false;
+		startTransition(async () => {
+			const formData = new FormData();
+			if (initialFormValue.id) formData.append("id", initialFormValue.id);
+			formData.append("returnTo", returnTo);
+			await cancelExamination(formData);
+		});
+	};
 	const onSubmit = async (values: FormValues) => {
 		if (isSubmitting) return;
-
 		try {
 			setIsSubmitting(true);
-
-			if (mode === "receive") {
+			needToBackStatusRef.current = false;
+			if (mode === "receive")
 				await receiveAction(values, returnTo, initialFormValue?.id);
-			} else if (mode === "examine") {
+			else if (mode === "examine")
 				await examineAction(values, returnTo, initialFormValue?.id || "");
-			} else {
-				await payAction(values, returnTo, initialFormValue?.id || "");
-			}
-		} catch (error) {
-			console.error("Error submitting form:", error);
-			// Error sẽ được xử lý trong action và redirect
+			else await payAction(values, returnTo, initialFormValue?.id || "");
+		} catch (_: unknown) {
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
-
 	const renderSubmitText = () => {
 		switch (mode) {
 			case "receive":
@@ -225,20 +206,30 @@ export default function ExaminationFormClient({
 				return "Lưu";
 		}
 	};
-
+	useEffect(() => {
+		return () => {
+			if (
+				needToBackStatusRef.current &&
+				initialFormValue.id &&
+				initialFormValue.status == "IN_PROGRESS"
+			) {
+				startBackingTransition(async () => {
+					await updateStatus(initialFormValue.id || "", "WAITING");
+				});
+			}
+		};
+	}, [initialFormValue.id, initialFormValue.status]);
 	return (
 		<Form {...form}>
 			<form
-				onSubmit={form.handleSubmit(onSubmit, (err) => console.error(err))}
+				onSubmit={form.handleSubmit(onSubmit)}
 				className="grid grid-cols-1 lg:grid-cols-15 gap-6 h-full"
 			>
-				{/* === CỘT 1: THÔNG TIN CƠ BẢN === */}
 				<div className="lg:col-span-4 space-y-6">
 					<div className="bg-white rounded shadow p-6 space-y-4 lg:h-full">
 						<span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
 							Thông tin cơ bản
 						</span>
-
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
 							<div className="space-y-1">
 								<span className="text-xs text-muted-foreground">
@@ -263,7 +254,6 @@ export default function ExaminationFormClient({
 								</div>
 							</div>
 						</div>
-
 						<div className="grid grid-cols-1 md:grid-cols-5 gap-2">
 							<div className="md:col-span-3">
 								<FormField
@@ -308,7 +298,6 @@ export default function ExaminationFormClient({
 								/>
 							</div>
 						</div>
-
 						<div className="grid grid-cols-1 md:grid-cols-10 gap-2">
 							<div className="md:col-span-7">
 								<FormField
@@ -361,7 +350,6 @@ export default function ExaminationFormClient({
 								/>
 							</div>
 						</div>
-
 						<div className="grid grid-cols-2 gap-2">
 							<FormField
 								control={form.control}
@@ -398,7 +386,7 @@ export default function ExaminationFormClient({
 													disabled={(date) =>
 														date > new Date() || date < new Date("1900-01-01")
 													}
-													initialFocus
+													autoFocus
 													captionLayout="dropdown"
 												/>
 											</PopoverContent>
@@ -435,16 +423,12 @@ export default function ExaminationFormClient({
 						</div>
 					</div>
 				</div>
-
-				{/* === CỘT 2: THÔNG TIN KHÁM === */}
 				<div className="lg:col-span-7 space-y-6">
 					<div className="bg-white rounded shadow p-6 space-y-4">
 						<span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
 							Thông tin khám
 						</span>
-
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							{/* Triệu chứng */}
 							<div className="space-y-2">
 								<FormField
 									control={form.control}
@@ -464,8 +448,6 @@ export default function ExaminationFormClient({
 									)}
 								/>
 							</div>
-
-							{/* Chẩn đoán */}
 							<div className="space-y-2">
 								<FormField
 									control={form.control}
@@ -473,7 +455,7 @@ export default function ExaminationFormClient({
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>
-												Chẩn đoán{" "}
+												Chẩn đoán
 												{mode === "examine" && (
 													<span className="text-red-500">*</span>
 												)}
@@ -490,8 +472,6 @@ export default function ExaminationFormClient({
 									)}
 								/>
 							</div>
-
-							{/* Dịch vụ */}
 							<div className="space-y-2">
 								<FormField
 									control={form.control}
@@ -513,8 +493,6 @@ export default function ExaminationFormClient({
 									)}
 								/>
 							</div>
-
-							{/* Thuốc */}
 							<div className="space-y-2">
 								<FormField
 									control={form.control}
@@ -536,8 +514,6 @@ export default function ExaminationFormClient({
 									)}
 								/>
 							</div>
-
-							{/* Ghi chú */}
 							<div className="space-y-2 col-span-1 md:col-span-2">
 								<FormField
 									control={form.control}
@@ -560,17 +536,12 @@ export default function ExaminationFormClient({
 						</div>
 					</div>
 				</div>
-
-				{/* === CỘT 3: THÔNG TIN THANH TOÁN === */}
 				<div className="lg:col-span-4 space-y-6 flex flex-col lg:h-full">
 					<div className="bg-white rounded shadow p-6 flex-1 flex flex-col h-full overflow-hidden">
 						<span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
 							Thông tin thanh toán
 						</span>
-
-						{/* List Items */}
 						<div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4 text-sm mb-4">
-							{/* Dịch vụ */}
 							<div>
 								<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
 									Dịch vụ
@@ -603,8 +574,6 @@ export default function ExaminationFormClient({
 									)}
 								</div>
 							</div>
-
-							{/* Thuốc */}
 							<div className="mt-4">
 								<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
 									Thuốc
@@ -637,8 +606,6 @@ export default function ExaminationFormClient({
 									)}
 								</div>
 							</div>
-
-							{/* Phí khám cố định */}
 							<div className="mt-4">
 								<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
 									Khám
@@ -651,8 +618,6 @@ export default function ExaminationFormClient({
 								</div>
 							</div>
 						</div>
-
-						{/* Footer */}
 						<div className="mt-auto pt-4 border-t shrink-0">
 							<div className="flex justify-between items-center text-base font-bold bg-[#A6CF52]/10 p-4 rounded-md mb-4">
 								<span className="text-gray-800">Thành tiền:</span>
@@ -660,7 +625,6 @@ export default function ExaminationFormClient({
 									{totalAmount.toLocaleString()} đ
 								</span>
 							</div>
-
 							<div className="flex flex-col gap-3">
 								{initialFormValue.status !== "COMPLETED" &&
 									initialFormValue.status !== "CANCELLED" && (
@@ -670,7 +634,7 @@ export default function ExaminationFormClient({
 											disabled={isSubmitting}
 											className="w-full bg-[#A6CF52] hover:bg-[#93b848] text-white font-bold text-md shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
 										>
-											{isSubmitting ? (
+											{isSubmitting || isBacking ? (
 												<>
 													<span className="mr-2">Đang xử lý...</span>
 													<Spinner />
@@ -680,7 +644,6 @@ export default function ExaminationFormClient({
 											)}
 										</Button>
 									)}
-
 								<div className="grid grid-cols-1 gap-3">
 									{initialFormValue.status === "COMPLETED" ||
 										(initialFormValue.status === "PENDING_PAYMENT" && (
@@ -692,15 +655,40 @@ export default function ExaminationFormClient({
 												<Printer className="mr-2 h-4 w-4" /> In phiếu
 											</Button>
 										))}
-									{initialFormValue.status !== "COMPLETED" &&
+									{initialFormValue.status &&
+										initialFormValue.status !== "COMPLETED" &&
 										initialFormValue.status !== "CANCELLED" && (
-											<Button
-												type="button"
-												variant="outline"
-												className="w-full border-red-200 text-red-600 bg-red-50 hover:bg-red-100"
-											>
-												<Ban className="mr-2 h-4 w-4" /> Hủy ca khám
-											</Button>
+											<Popover>
+												<PopoverTrigger asChild>
+													<Button
+														type="button"
+														variant="outline"
+														className="w-full border-red-200 text-red-600 bg-red-50 hover:bg-red-100"
+													>
+														<Ban className="mr-2 h-4 w-4" /> Hủy ca khám
+													</Button>
+												</PopoverTrigger>
+												<PopoverContent className="w-[260px]" side="top">
+													<p className="text-sm">
+														Bạn có chắc muốn hủy lịch khám này không?
+													</p>
+													<div className="mt-3 flex items-center gap-2 justify-end">
+														<Button
+															type="button"
+															size="sm"
+															className="bg-[#DC3545] hover:bg-[#C82333]"
+															onClick={handleCancel}
+															disabled={isCancelling}
+														>
+															{isCancelling ? (
+																<Spinner className="w-4 h-4" />
+															) : (
+																"Xác nhận"
+															)}
+														</Button>
+													</div>
+												</PopoverContent>
+											</Popover>
 										)}
 								</div>
 							</div>

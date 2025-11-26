@@ -221,11 +221,11 @@ export default function ImportMedicinesExcelClient() {
           <div className="space-y-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
-                Đã đọc được <span className="font-semibold">{rows.length}</span>{" "}
+                Đã đọc được <span className="font-semibold">{rows.length}</span>
                 dòng dữ liệu từ file.
                 {hasErrors && (
                   <>
-                    {" "}- Có <span className="font-semibold">lỗi</span> ở một số
+                    - Có <span className="font-semibold">lỗi</span> ở một số
                     dòng, vui lòng kiểm tra bên dưới.
                   </>
                 )}

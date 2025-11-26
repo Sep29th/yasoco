@@ -1,5 +1,4 @@
-import {DateString} from "@/utils/types/date-string";
-
+import { DateString } from "@/utils/types/date-string";
 export function getTodayDateString(): DateString {
 	const today = new Date();
 	const year = today.getFullYear();

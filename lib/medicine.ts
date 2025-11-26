@@ -44,6 +44,15 @@ export const createMedicine = async ({
 	if (!Number.isFinite(price) || price < 0)
 		throw new Error("Giá thuốc không hợp lệ");
 
+	const existed = await prisma.medicine.findFirst({
+		where: {
+			name: trimmedName,
+		},
+		select: { id: true },
+	});
+
+	if (existed) throw new Error("Thuốc này đã có rồi");
+
 	const medicine = await prisma.medicine.create({
 		data: {
 			name: trimmedName,

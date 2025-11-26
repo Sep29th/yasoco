@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState } from "react";
+import { useState } from "react";
 import { Check, ChevronsUpDown, Minus, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,43 +16,35 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-
-export type SelectorItem = {
+type SelectorItem = {
 	id: string;
 	name: string;
-	price?: number;
+	price: number;
 	unit?: string;
-	description?: string | null;
+	description?: string;
 };
-
-export type SelectedItem = SelectorItem & {
-	quantity: number;
-};
-
-interface SelectorProps {
+type SelectedItem = SelectorItem & { quantity: number };
+type PropsType = {
 	options: SelectorItem[];
 	value?: SelectedItem[];
 	onChange?: (value: SelectedItem[]) => void;
 	placeholder?: string;
 	disabled?: boolean;
-}
-
+};
 export default function Selector({
 	options = [],
 	value,
 	onChange,
 	placeholder = "Chọn mục...",
 	disabled = false,
-}: SelectorProps) {
+}: PropsType) {
 	const [open, setOpen] = useState(false);
 	const [internalItems, setInternalItems] = useState<SelectedItem[]>([]);
-
 	const items = value || internalItems;
 	const setItems = (newItems: SelectedItem[]) => {
 		if (onChange) onChange(newItems);
 		else setInternalItems(newItems);
 	};
-
 	const handleSelect = (option: SelectorItem) => {
 		setOpen(false);
 		const exists = items.find((i) => i.id === option.id);
@@ -63,7 +54,6 @@ export default function Selector({
 			setItems([...items, { ...option, quantity: 1 }]);
 		}
 	};
-
 	const updateQuantity = (id: string, delta: number) => {
 		setItems(
 			items.map((item) =>
@@ -73,14 +63,11 @@ export default function Selector({
 			)
 		);
 	};
-
 	const removeItem = (id: string) => {
 		setItems(items.filter((item) => item.id !== id));
 	};
-
 	return (
 		<div className={cn("w-full space-y-2", disabled && "opacity-80")}>
-			{/* Combobox Input */}
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
 					<Button
@@ -96,7 +83,6 @@ export default function Selector({
 						<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 					</Button>
 				</PopoverTrigger>
-
 				{!disabled && (
 					<PopoverContent
 						className="w-(--radix-popover-trigger-width) p-0"
@@ -124,17 +110,15 @@ export default function Selector({
 											/>
 											<div className="flex flex-col text-sm">
 												<span>{option.name}</span>
-
-												{/* 2. Hiển thị Description trong Dropdown */}
 												{option.description && (
 													<span className="text-xs text-muted-foreground italic">
 														{option.description}
 													</span>
 												)}
-
 												{option.price && (
 													<span className="text-xs font-medium text-[#A6CF52]">
 														{option.price.toLocaleString()}đ
+														{option.unit && ` / ${option.unit}`}
 													</span>
 												)}
 											</div>
@@ -146,8 +130,6 @@ export default function Selector({
 					</PopoverContent>
 				)}
 			</Popover>
-
-			{/* Selected Items List */}
 			<div
 				className={cn(
 					"flex flex-col gap-2 border rounded-md p-2 bg-slate-50 overflow-y-auto custom-scrollbar",
@@ -172,8 +154,6 @@ export default function Selector({
 								>
 									{item.name}
 								</div>
-
-								{/* 3. Hiển thị Description trong danh sách đã chọn */}
 								{item.description && (
 									<div
 										className="text-xs text-gray-400 truncate italic"
@@ -182,15 +162,17 @@ export default function Selector({
 										{item.description}
 									</div>
 								)}
-
 								{item.price && (
 									<div className="text-xs text-[#A6CF52] font-medium mt-0.5">
 										{(item.price * item.quantity).toLocaleString()}đ
+										{item.unit && (
+											<span className="text-gray-500 ml-1">
+												({item.quantity} {item.unit})
+											</span>
+										)}
 									</div>
 								)}
 							</div>
-
-							{/* Quantity Controls */}
 							<div
 								className={cn(
 									"flex items-center border rounded bg-white shrink-0",
@@ -217,8 +199,6 @@ export default function Selector({
 									<Plus className="h-3 w-3" />
 								</button>
 							</div>
-
-							{/* Remove Button */}
 							<button
 								type="button"
 								onClick={() => removeItem(item.id)}

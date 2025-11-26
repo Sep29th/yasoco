@@ -1,26 +1,17 @@
 "use client";
-
 import React, { useEffect, useRef, useMemo } from "react";
 import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
 import TiptapToolbar from "./tiptap-toolbar";
-
-interface TiptapEditorProps {
-	content?: JSONContent | string | null;
+type PropsType = {
+	content?: JSONContent | null;
 	onChange: (content: JSONContent) => void;
 	disabled?: boolean;
-}
-
-const isEmptyJSONContent = (
-	content: JSONContent | string | null | undefined
-): boolean => {
+};
+const isEmptyJSONContent = (content: JSONContent | null): boolean => {
 	if (!content) return true;
-	if (typeof content === "string") return content.trim().length === 0;
-
 	if (content.type === "doc") {
 		if (!content.content || content.content.length === 0) return true;
-
 		const hasContent = content.content.some((node) => {
 			if (node.type === "paragraph") {
 				if (node.content && Array.isArray(node.content)) {
@@ -39,37 +30,21 @@ const isEmptyJSONContent = (
 			}
 			return true;
 		});
-
 		return !hasContent;
 	}
-
 	return false;
 };
-
-const TiptapEditor: React.FC<TiptapEditorProps> = ({
+const TiptapEditor: React.FC<PropsType> = ({
 	content,
 	onChange,
 	disabled = false,
 }) => {
-	const normalizedContent = useMemo<JSONContent | null | undefined>(() => {
-		if (typeof content === "string") {
-			return {
-				type: "doc",
-				content: [
-					{ type: "paragraph", content: [{ type: "text", text: content }] },
-				],
-			};
-		}
-		return content;
-	}, [content]);
-
-	const contentRef = useRef<JSONContent | null | undefined>(normalizedContent);
+	const contentRef = useRef<JSONContent | null>(content);
 	const isUpdatingRef = useRef(false);
-
 	const editor = useEditor({
 		immediatelyRender: false,
-		extensions: [StarterKit, Underline],
-		content: normalizedContent || { type: "doc", content: [] },
+		extensions: [StarterKit],
+		content: content || { type: "doc", content: [] },
 		editable: !disabled,
 		editorProps: {
 			attributes: {
@@ -86,40 +61,27 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
 			}
 		},
 	});
-
 	useEffect(() => {
 		if (editor) {
 			editor.setEditable(!disabled);
 		}
 	}, [disabled, editor]);
-
 	useEffect(() => {
-		if (!editor) return;
-
+		if (!editor || !editor.isInitialized) return;
 		const currentContent = editor.getJSON();
-		const currentContentStr = JSON.stringify(currentContent);
-		const newContentStr = JSON.stringify(
-			normalizedContent || { type: "doc", content: [] }
-		);
-
-		if (
-			currentContentStr !== newContentStr &&
-			contentRef.current !== normalizedContent
-		) {
+		const newContent = content || { type: "doc", content: [] };
+		if (JSON.stringify(currentContent) !== JSON.stringify(newContent)) {
 			isUpdatingRef.current = true;
-			editor.commands.setContent(
-				normalizedContent || { type: "doc", content: [] }
-			);
-			contentRef.current = normalizedContent;
-			setTimeout(() => {
+			editor.commands.setContent(newContent);
+			contentRef.current = content;
+			requestAnimationFrame(() => {
 				isUpdatingRef.current = false;
-			}, 0);
+			});
 		}
-	}, [normalizedContent, editor]);
-
+	}, [content, editor]);
 	return (
 		<div
-			className={`w-full border border-gray-300 rounded-md bg-white flex flex-col overflow-hidden tiptap-editor-wrapper ${
+			className={`w-full border rounded-md bg-white flex flex-col overflow-hidden tiptap-editor-wrapper ${
 				disabled ? "border-gray-200 bg-gray-50" : "border-gray-300"
 			}`}
 		>
@@ -133,6 +95,5 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
 		</div>
 	);
 };
-
 export { isEmptyJSONContent };
 export default TiptapEditor;

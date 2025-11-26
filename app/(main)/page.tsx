@@ -229,19 +229,19 @@ export default function Home() {
                   phòng khám để lấy số khám (được khám khi có lịch trống).
                 </p>
                 <p className="text-md">
-                  Hoặc vui lòng liên hệ Ms Hương{" "}
+                  Hoặc vui lòng liên hệ Ms Hương
                   <a
                     href="tel:0978692286"
                     className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 transition-colors"
                   >
                     0978692286
-                  </a>{" "}
+                  </a>
                   để được tư vấn.
                 </p>
 
                 {/* Dùng blockquote cho phần lưu ý */}
                 <blockquote className="mt-6 pt-4 border-t border-gray-200 text-sm italic text-gray-600 text-left">
-                  <span className="font-semibold text-gray-800">Lưu ý:</span>{" "}
+                  <span className="font-semibold text-gray-800">Lưu ý:</span>
                   Nếu quá 3 lần đặt lịch thành công mà không đến khám, số điện
                   thoại của bạn sẽ không đặt được lịch cho những lần tiếp. Vui
                   lòng liên hệ với phòng khám để mở lại số.

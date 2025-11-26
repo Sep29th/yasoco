@@ -37,6 +37,15 @@ export const createService = async ({
 	if (!Number.isFinite(price) || price < 0)
 		throw new Error("Giá dịch vụ không hợp lệ");
 
+	const existed = await prisma.service.findFirst({
+		where: {
+			name: trimmedName,
+		},
+		select: { id: true },
+	});
+
+	if (existed) throw new Error("Dịch vụ này đã có rồi");
+
 	const service = await prisma.service.create({
 		data: {
 			name: trimmedName,

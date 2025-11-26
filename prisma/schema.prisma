@@ -9,6 +9,10 @@ generator client {
   output   = "../lib/generated/prisma"
 }
 
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -111,6 +115,7 @@ enum DaysOfWeek {
 model ExaminationSession {
   id         String     @id @default(uuid())
   daysOfWeek DaysOfWeek
+  /// [ExaminationSessionSessionType]
   session    Json
 
   @@index([daysOfWeek])
@@ -137,21 +142,34 @@ model Examination {
   parentPhone    String
   kidName        String
   kidBirthDate   DateTime
-  kidGender      Boolean // true is male
+  kidGender      Boolean
   kidWeight      Int?
+  /// [EditorContentType]
   symptoms       Json?
+  /// [EditorContentType]
   diagnose       Json?
+  /// [EditorContentType]
   note           Json?
-  services       Json[]            @default([])
-  medicines      Json[]            @default([])
+  /// [ServiceSnapshotType]
+  services       Json              @default("[]")
+  /// [MedicineSnapshotType]
+  medicines      Json              @default("[]")
   date           DateTime
   status         ExaminationStatus
   type           ExaminationType
+  /// [UserSnapshotType]
   receivedBy     Json?
+  /// [UserSnapshotType]
   examinedBy     Json?
+  /// [UserSnapshotType]
   paidBy         Json?
+  /// [UserSnapshotType]
   cancelledBy    Json?
+  /// [UserSnapshotType]
+  bookedBy       Json?
   examinationFee Int?
+  /// [DiscountSnapshotType]
+  discounts      Json              @default("[]")
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
@@ -198,6 +216,7 @@ model Article {
   slug           String?                  @unique
   excerpt        String?
   coverImage     String?
+  /// [EditorContentType]
   content        Json?
   contentText    String?
   searchVector   Unsupported("tsvector")?
@@ -238,4 +257,11 @@ model Tag {
   updatedAt DateTime @updatedAt
 
   articleTags ArticleTag[]
+}
+
+model Invoice {
+  id    String @id @default(uuid())
+  name  String
+  /// [EditorContentType]
+  value Json?
 }
