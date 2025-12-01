@@ -1,17 +1,19 @@
 import ExaminationFormClient from "@/app/admin/(manager)/examinations/examine/_components/examination-form-client";
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import Link from "next/link";
-import { ExamineParams } from "./_types/examine-params";
-import { requireAuth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { validateExamineParams } from "./_utils/validate-examine-params";
-import { getExaminationById } from "@/lib/examination";
-import { getAllMedicines } from "@/lib/medicine";
-import { getAllServices } from "@/lib/service";
-import { getExaminationFee } from "@/lib/examination-fee";
-import { ExaminationStatus } from "@/lib/generated/prisma";
+import {ExamineParams} from "./_types/examine-params";
+import {requireAuth} from "@/lib/auth";
+import {redirect} from "next/navigation";
+import {validateExamineParams} from "./_utils/validate-examine-params";
+import {getExaminationById} from "@/lib/examination";
+import {getAllMedicines} from "@/lib/medicine";
+import {getAllServices} from "@/lib/service";
+import {getExaminationFee} from "@/lib/examination-fee";
+import {ExaminationStatus} from "@/lib/generated/prisma";
 import ExaminationDetailModalButton from "../_components/examination-detail-modal-button";
 import updateStatus from "./_actions/update-status";
+import BackButton from "@/components/back-button";
+
 type PropsType = { searchParams: Promise<ExamineParams> };
 const renderTitle = (status: ExaminationStatus | undefined) => {
 	if (status == "PENDING_PAYMENT") return "Thanh toán";
@@ -26,7 +28,7 @@ const renderDescription = (status: ExaminationStatus | undefined) => {
 		return "Thiết lập thông tin cho bệnh nhân không có lịch trước";
 	return "Thiết lập thông tin cho bệnh nhân";
 };
-export default async function ExaminePage({ searchParams }: PropsType) {
+export default async function ExaminePage({searchParams}: PropsType) {
 	const auth = await requireAuth();
 	if (!auth.permissions.includes("examination:update"))
 		redirect("/admin/forbidden");
@@ -34,7 +36,7 @@ export default async function ExaminePage({ searchParams }: PropsType) {
 	const spTyped = resolvedParams as Record<string, string | undefined>;
 	const errorMessage =
 		typeof spTyped.error === "string" ? spTyped.error.trim() : "";
-	const { examinationId, returnTo } = validateExamineParams(resolvedParams);
+	const {examinationId, returnTo} = validateExamineParams(resolvedParams);
 	let examination = undefined;
 	if (examinationId) {
 		examination = await getExaminationById(examinationId);
@@ -64,6 +66,7 @@ export default async function ExaminePage({ searchParams }: PropsType) {
 		note: examination?.note,
 		status: examination?.status,
 		type: examination?.type,
+		discounts: examination?.discounts,
 	};
 	return (
 		<div className="space-y-6">
@@ -82,14 +85,10 @@ export default async function ExaminePage({ searchParams }: PropsType) {
 					</p>
 				</div>
 				<div className="justify-end items-center gap-2">
-					{examination?.id && (
-						<ExaminationDetailModalButton examinationId={examination.id} />
+					{examination && examination.id && (
+						<ExaminationDetailModalButton examinationId={examination.id}/>
 					)}
-					<Link href={returnTo} className="no-underline">
-						<Button variant="outline" className="cursor-pointer">
-							Quay lại
-						</Button>
-					</Link>
+					<BackButton/>
 				</div>
 			</header>
 			<ExaminationFormClient
@@ -98,6 +97,7 @@ export default async function ExaminePage({ searchParams }: PropsType) {
 					medicines,
 					services,
 					examinationFee: examinationFee?.value || 0,
+					date: examination?.date || new Date()
 				}}
 				returnTo={returnTo}
 			/>

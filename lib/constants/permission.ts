@@ -23,6 +23,10 @@ export const ALL_PERMISSION = [
 	"medicine:create",
 	"medicine:update",
 	"medicine:delete",
+	"invoice-template:read",
+	"invoice-template:create",
+	"invoice-template:update",
+	"invoice-template:delete",
 	"article:read",
 	"article:create",
 	"article:update",
@@ -39,8 +43,8 @@ export const RESOURCES = [
 		label: "Người dùng",
 		description: "Các quyền đối với người dùng",
 		actions: [
-			{ value: "user:read", label: "Xem danh sách người dùng" },
-			{ value: "user:create", label: "Tạo tài khoản người dùng mới" },
+			{value: "user:read", label: "Xem danh sách người dùng"},
+			{value: "user:create", label: "Tạo tài khoản người dùng mới"},
 			{
 				value: "user:update",
 				label: "Sửa thông tin người dùng trong hệ thống",
@@ -56,10 +60,10 @@ export const RESOURCES = [
 		label: "Vai trò",
 		description: "Các quyền đối với vai trò",
 		actions: [
-			{ value: "role:read", label: "Xem danh sách vai trò" },
-			{ value: "role:create", label: "Tạo vai trò mới" },
-			{ value: "role:update", label: "Sửa thông tin của vai trò" },
-			{ value: "role:delete", label: "Xóa vai trò" },
+			{value: "role:read", label: "Xem danh sách vai trò"},
+			{value: "role:create", label: "Tạo vai trò mới"},
+			{value: "role:update", label: "Sửa thông tin của vai trò"},
+			{value: "role:delete", label: "Xóa vai trò"},
 		],
 	},
 	{
@@ -67,10 +71,10 @@ export const RESOURCES = [
 		label: "Lịch khám",
 		description: "Các quyền đối với lịch khám",
 		actions: [
-			{ value: "examination:read", label: "Xem danh sách lịch khám" },
-			{ value: "examination:create", label: "Tạo lịch khám mới" },
-			{ value: "examination:update", label: "Sửa thông tin lịch khám" },
-			{ value: "examination:delete", label: "Xóa lịch khám" },
+			{value: "examination:read", label: "Xem danh sách lịch khám"},
+			{value: "examination:create", label: "Tạo lịch khám mới"},
+			{value: "examination:update", label: "Sửa thông tin lịch khám"},
+			{value: "examination:delete", label: "Xóa lịch khám"},
 		],
 	},
 	{
@@ -90,7 +94,7 @@ export const RESOURCES = [
 				value: "examination-session:update",
 				label: "Sửa giờ khám có thể đặt lịch",
 			},
-			{ value: "examination-session:delete", label: "Xóa giờ khám" },
+			{value: "examination-session:delete", label: "Xóa giờ khám"},
 		],
 	},
 	{
@@ -98,10 +102,10 @@ export const RESOURCES = [
 		label: "Dịch vụ",
 		description: "Các quyền đối với dịch vụ",
 		actions: [
-			{ value: "service:read", label: "Xem danh sách dịch vụ" },
-			{ value: "service:create", label: "Tạo dịch vụ mới" },
-			{ value: "service:update", label: "Sửa thông tin dịch vụ" },
-			{ value: "service:delete", label: "Xóa dịch vụ" },
+			{value: "service:read", label: "Xem danh sách dịch vụ"},
+			{value: "service:create", label: "Tạo dịch vụ mới"},
+			{value: "service:update", label: "Sửa thông tin dịch vụ"},
+			{value: "service:delete", label: "Xóa dịch vụ"},
 		],
 	},
 	{
@@ -109,10 +113,21 @@ export const RESOURCES = [
 		label: "Thuốc",
 		description: "Các quyền đối với thuốc",
 		actions: [
-			{ value: "medicine:read", label: "Xem danh sách thuốc" },
-			{ value: "medicine:create", label: "Tạo thuốc mới" },
-			{ value: "medicine:update", label: "Sửa thông tin thuốc" },
-			{ value: "medicine:delete", label: "Xóa thuốc" },
+			{value: "medicine:read", label: "Xem danh sách thuốc"},
+			{value: "medicine:create", label: "Tạo thuốc mới"},
+			{value: "medicine:update", label: "Sửa thông tin thuốc"},
+			{value: "medicine:delete", label: "Xóa thuốc"},
+		],
+	},
+	{
+		key: "invoice-template",
+		label: "Mẫu hóa đơn",
+		description: "Các quyền đối với mẫu hóa đơn",
+		actions: [
+			{value: "invoice-template:read", label: "Xem danh sách mẫu hóa đơn"},
+			{value: "invoice-template:create", label: "Tạo mẫu hóa đơn mới"},
+			{value: "invoice-template:update", label: "Chỉnh sửa mẫu hóa đơn"},
+			{value: "invoice-template:delete", label: "Xóa mẫu hóa đơn"},
 		],
 	},
 	{
@@ -120,11 +135,11 @@ export const RESOURCES = [
 		label: "Bài viết",
 		description: "Các quyền đối với bài viết",
 		actions: [
-			{ value: "article:read", label: "Xem danh sách các bài viết" },
-			{ value: "article:create", label: "Tạo bài viết mới" },
-			{ value: "article:update", label: "Sửa bài viết" },
-			{ value: "article:publish", label: "Đăng tải" },
-			{ value: "article:delete", label: "Xóa bài viết" },
+			{value: "article:read", label: "Xem danh sách các bài viết"},
+			{value: "article:create", label: "Tạo bài viết mới"},
+			{value: "article:update", label: "Sửa bài viết"},
+			{value: "article:publish", label: "Đăng tải"},
+			{value: "article:delete", label: "Xóa bài viết"},
 		],
 	},
 	{
@@ -132,10 +147,10 @@ export const RESOURCES = [
 		label: "Chủ đề",
 		description: "Các quyền đối với chủ đề",
 		actions: [
-			{ value: "tag:read", label: "Xem danh sách chủ đề cho bài viết" },
-			{ value: "tag:create", label: "Tạo chủ đề mới cho bài viết" },
-			{ value: "tag:update", label: "Sửa chủ đề" },
-			{ value: "tag:delete", label: "Xóa chủ đề" },
+			{value: "tag:read", label: "Xem danh sách chủ đề cho bài viết"},
+			{value: "tag:create", label: "Tạo chủ đề mới cho bài viết"},
+			{value: "tag:update", label: "Sửa chủ đề"},
+			{value: "tag:delete", label: "Xóa chủ đề"},
 		],
 	},
 ];

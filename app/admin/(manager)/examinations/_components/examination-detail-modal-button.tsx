@@ -1,14 +1,14 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMemo, useState, useTransition } from "react";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {useMemo, useState, useTransition} from "react";
+import {VisuallyHidden} from "@radix-ui/react-visually-hidden";
 import {
 	getAllFutureExaminationsByPhone,
 	getAllPastExaminationsByPhone,
@@ -16,17 +16,17 @@ import {
 } from "@/lib/examination";
 import ExaminationStatusBadge from "./examination-status-badge";
 import ExaminationTypeBadge from "./examination-type-badge";
-import { formatDateTime } from "../_utils/format-date-time";
-import { formatDate } from "../_utils/format-date";
-import TiptapEditor, { isEmptyJSONContent } from "@/components/tiptap-editor";
-import type { JSONContent } from "@tiptap/react";
+import {formatDateTime} from "../_utils/format-date-time";
+import {formatDate} from "../_utils/format-date";
+import TiptapEditor, {isEmptyJSONContent} from "@/components/tiptap-editor";
+import type {JSONContent} from "@tiptap/react";
 import ActionItem from "./action-item";
-import { Skeleton } from "@/components/ui/skeleton";
+import {Skeleton} from "@/components/ui/skeleton";
 import ExaminationItem from "./examination-item";
-import { CalendarIcon, CheckCircle2, Clock } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { vi } from "date-fns/locale";
-import { Label } from "@/components/ui/label";
+import {CalendarIcon, CheckCircle2, Clock} from "lucide-react";
+import {Calendar} from "@/components/ui/calendar";
+import {vi} from "date-fns/locale";
+import {Label} from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -34,20 +34,22 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { createFollowUp } from "../_actions/create-follow-up";
-import { toast } from "sonner";
+import {createFollowUp} from "../_actions/create-follow-up";
+import {toast} from "sonner";
 import ExaminationItemSkeleton from "./examination-item-skeleton";
-import { Examination } from '@/lib/generated/prisma';
-const HOURS = Array.from({ length: 24 }, (_, i) =>
+import {Examination} from '@/lib/generated/prisma';
+import PrintInvoiceModalButton from "@/app/admin/(manager)/examinations/_components/print-invoice-modal-button";
+
+const HOURS = Array.from({length: 24}, (_, i) =>
 	i.toString().padStart(2, "0")
 );
-const MINUTES = Array.from({ length: 60 }, (_, i) =>
+const MINUTES = Array.from({length: 60}, (_, i) =>
 	i.toString().padStart(2, "0")
 );
 type PropsType = { examinationId: string };
 export default function ExaminationDetailModalButton({
-	examinationId,
-}: PropsType) {
+																											 examinationId,
+																										 }: PropsType) {
 	const [open, setOpen] = useState(false);
 	const [examination, setExamination] = useState<Examination | null>(null);
 	const [examinationsHistory, setExaminationsHistory] = useState<Awaited<
@@ -103,13 +105,12 @@ export default function ExaminationDetailModalButton({
 		});
 	};
 	const handleOpenChange = (isOpen: boolean) => {
+		setOpen(isOpen);
 		if (isOpen) {
-			setOpen(true);
 			if (!examination) {
 				loadDetail(examinationId);
 			}
 		} else {
-			setOpen(false);
 			setTimeout(() => {
 				setTab("detail");
 				setExamination(null);
@@ -150,10 +151,12 @@ export default function ExaminationDetailModalButton({
 			if (!result.success) {
 				toast.error("Không thể tạo lịch", {
 					description: result.message,
+					position: "top-right"
 				});
 			} else {
 				toast.success("Thành công", {
 					description: result.message,
+					position: "top-right",
 					style: {
 						backgroundColor: "#A6CF52",
 						color: "white",
@@ -183,10 +186,28 @@ export default function ExaminationDetailModalButton({
 		return (
 			<div className="space-y-1">
 				<span className="text-sm font-medium text-gray-700">{label}</span>
-				<TiptapEditor content={content} onChange={() => {}} disabled />
+				<TiptapEditor content={content} onChange={() => {
+				}} disabled/>
 			</div>
 		);
 	};
+	const totalServicePrice = examination?.services.reduce(
+		(acc, item) => acc + (item.price || 0) * item.quantity,
+		0
+	) || 0;
+	const totalMedicinePrice = examination?.medicines.reduce(
+		(acc, item) => acc + (item.price || 0) * item.quantity,
+		0
+	) || 0;
+	const subTotal = totalServicePrice + totalMedicinePrice + (examination?.examinationFee || 0)
+	const totalDiscount = examination?.discounts.reduce((acc, curr) => {
+		const val = curr.value || 0;
+		if (curr.type === "percent") {
+			return acc + (subTotal * val) / 100;
+		}
+		return acc + val;
+	}, 0) || 0;
+	const totalAmount = Math.max(0, subTotal - totalDiscount);
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
@@ -281,19 +302,20 @@ export default function ExaminationDetailModalButton({
 											<span className="text-xs text-muted-foreground">
 												Trạng thái
 											</span>
-											<div className="min-h-[24px]">
-												<ExaminationStatusBadge status={examination.status} />
+											<div className="min-h-6">
+												<ExaminationStatusBadge status={examination.status}/>
 											</div>
 										</div>
 										<div className="space-y-1">
 											<span className="text-xs text-muted-foreground">
 												Loại khám
 											</span>
-											<div className="min-h-[24px]">
-												<ExaminationTypeBadge type={examination.type} />
+											<div className="min-h-6">
+												<ExaminationTypeBadge type={examination.type}/>
 											</div>
 										</div>
 									</div>
+									<PrintInvoiceModalButton examination={examination}/>
 								</div>
 								<div className="bg-white rounded shadow p-6 space-y-4">
 									<span className="font-semibold text-lg block border-b pb-2">
@@ -392,6 +414,38 @@ export default function ExaminationDetailModalButton({
 												</div>
 											</div>
 										)}
+										<div className="mt-4">
+											<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
+												Giảm giá
+											</h4>
+
+											{examination.discounts.length > 0 ? (
+												<div className="space-y-2">
+													{examination.discounts.map((d, idx) => (
+														<div
+															key={idx}
+															className="flex justify-between items-start text-gray-600"
+														>
+															<div>
+																<span className="block text-gray-900">
+																	{d.description || "Giảm giá"}
+																</span>
+																<span className="text-xs text-gray-500">
+																	{d.type === "percent" ? `${d.value}%` : `${d.value.toLocaleString()}đ`}
+																</span>
+															</div>
+															<span className="font-medium text-red-600 shrink-0">
+																{examination.examinationFee && (d.type === "percent"
+																	? `-${((subTotal * d.value) / 100).toLocaleString()}đ`
+																	: `-${d.value.toLocaleString()}đ`)}
+															</span>
+														</div>
+													))}
+												</div>
+											) : (
+												<p className="text-xs text-gray-400 italic">Không có giảm giá</p>
+											)}
+										</div>
 										{examination.examinationFee &&
 											examination.status === "COMPLETED" && (
 												<div className="mt-4 border-t pt-2">
@@ -400,19 +454,7 @@ export default function ExaminationDetailModalButton({
 															Tổng cộng
 														</span>
 														<span className="font-bold text-[#A6CF52] text-base shrink-0">
-															{(
-																examination.examinationFee +
-																examination.medicines.reduce(
-																	(acc, item) =>
-																		acc + (item.price || 0) * item.quantity,
-																	0
-																) +
-																examination.services.reduce(
-																	(acc, item) =>
-																		acc + (item.price || 0) * item.quantity,
-																	0
-																)
-															).toLocaleString()}
+															{totalAmount.toLocaleString()}
 															đ
 														</span>
 													</div>
@@ -461,16 +503,16 @@ export default function ExaminationDetailModalButton({
 						) : (
 							<div className="grid grid-cols-4 gap-2 h-full">
 								<div className="bg-white rounded shadow p-6 space-y-4 h-full">
-									<Skeleton className="h-full w-full" />
+									<Skeleton className="h-full w-full"/>
 								</div>
 								<div className="bg-white rounded shadow p-6 space-y-4">
-									<Skeleton className="h-full w-full" />
+									<Skeleton className="h-full w-full"/>
 								</div>
 								<div className="bg-white rounded shadow p-6 space-y-4">
-									<Skeleton className="h-full w-full" />
+									<Skeleton className="h-full w-full"/>
 								</div>
 								<div className="bg-white rounded shadow p-6 space-y-4">
-									<Skeleton className="h-full w-full" />
+									<Skeleton className="h-full w-full"/>
 								</div>
 							</div>
 						)}
@@ -496,8 +538,8 @@ export default function ExaminationDetailModalButton({
 							)
 						) : (
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
-								{Array.from({ length: 8 }).map((_, i) => (
-									<ExaminationItemSkeleton key={i} />
+								{Array.from({length: 8}).map((_, i) => (
+									<ExaminationItemSkeleton key={i}/>
 								))}
 							</div>
 						)}
@@ -523,8 +565,8 @@ export default function ExaminationDetailModalButton({
 							)
 						) : (
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
-								{Array.from({ length: 8 }).map((_, i) => (
-									<ExaminationItemSkeleton key={i} />
+								{Array.from({length: 8}).map((_, i) => (
+									<ExaminationItemSkeleton key={i}/>
 								))}
 							</div>
 						)}
@@ -553,7 +595,7 @@ export default function ExaminationDetailModalButton({
 												{examination.parentPhone}
 											</p>
 										</div>
-										<div className="w-full h-px bg-gray-100 my-2" />
+										<div className="w-full h-px bg-gray-100 my-2"/>
 										<div className="space-y-1">
 											<span className="text-xs text-muted-foreground uppercase tracking-wide">
 												Tên bé
@@ -619,7 +661,7 @@ export default function ExaminationDetailModalButton({
 														disabled={!bookingDate}
 													>
 														<SelectTrigger className="w-full">
-															<SelectValue placeholder="Giờ" />
+															<SelectValue placeholder="Giờ"/>
 														</SelectTrigger>
 														<SelectContent className="h-48">
 															{HOURS.map((h) => (
@@ -638,7 +680,7 @@ export default function ExaminationDetailModalButton({
 														disabled={!bookingDate}
 													>
 														<SelectTrigger className="w-full">
-															<SelectValue placeholder="Phút" />
+															<SelectValue placeholder="Phút"/>
 														</SelectTrigger>
 														<SelectContent className="h-48">
 															{MINUTES.map((m) => (
@@ -665,11 +707,12 @@ export default function ExaminationDetailModalButton({
 									</div>
 									<div className="w-full pt-4 border-t mt-auto flex flex-col items-center gap-4">
 										{bookingDate && bookingTime && (
-											<div className="flex items-center gap-2 text-[#A6CF52] font-medium bg-[#A6CF52]/10 px-4 py-2 rounded-full text-sm animate-in fade-in zoom-in duration-300">
-												<CalendarIcon className="h-4 w-4" />
+											<div
+												className="flex items-center gap-2 text-[#A6CF52] font-medium bg-[#A6CF52]/10 px-4 py-2 rounded-full text-sm animate-in fade-in zoom-in duration-300">
+												<CalendarIcon className="h-4 w-4"/>
 												<span>Ngày {formatDate(bookingDate)}</span>
-												<span className="w-1 h-1 rounded-full bg-[#A6CF52]" />
-												<Clock className="h-4 w-4" /> <span>{bookingTime}</span>
+												<span className="w-1 h-1 rounded-full bg-[#A6CF52]"/>
+												<Clock className="h-4 w-4"/> <span>{bookingTime}</span>
 											</div>
 										)}
 										<Button
@@ -684,7 +727,7 @@ export default function ExaminationDetailModalButton({
 												"Đang xử lý..."
 											) : (
 												<>
-													<CheckCircle2 className="mr-2 h-5 w-5" /> Tạo lịch tái
+													<CheckCircle2 className="mr-2 h-5 w-5"/> Tạo lịch tái
 													khám
 												</>
 											)}
@@ -695,15 +738,15 @@ export default function ExaminationDetailModalButton({
 						) : (
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
 								<div className="bg-white rounded shadow p-6 space-y-4">
-									<Skeleton className="h-8 w-1/2 mb-4" />
-									<Skeleton className="h-6 w-full" />
-									<Skeleton className="h-6 w-full" />
-									<Skeleton className="h-6 w-3/4" />
+									<Skeleton className="h-8 w-1/2 mb-4"/>
+									<Skeleton className="h-6 w-full"/>
+									<Skeleton className="h-6 w-full"/>
+									<Skeleton className="h-6 w-3/4"/>
 								</div>
 								<div className="bg-white rounded shadow p-6 space-y-4 flex flex-col items-center">
-									<Skeleton className="h-8 w-1/2 mb-4" />
-									<Skeleton className="h-[300px] w-[300px] rounded-lg" />
-									<Skeleton className="h-10 w-full mt-4" />
+									<Skeleton className="h-8 w-1/2 mb-4"/>
+									<Skeleton className="h-[300px] w-[300px] rounded-lg"/>
+									<Skeleton className="h-10 w-full mt-4"/>
 								</div>
 							</div>
 						)}

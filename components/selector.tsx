@@ -133,7 +133,7 @@ export default function Selector({
 			<div
 				className={cn(
 					"flex flex-col gap-2 border rounded-md p-2 bg-slate-50 overflow-y-auto custom-scrollbar",
-					"h-[200px]",
+					"h-[235px]",
 					disabled && "bg-gray-100"
 				)}
 			>

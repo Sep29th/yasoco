@@ -5,7 +5,7 @@ import {MenuItem} from "./_types/menu-item";
 import {
 	CalendarClock,
 	CalendarPlus2,
-	Cog,
+	Cog, FilePenLine,
 	LayoutDashboard,
 	Newspaper,
 	Pill,
@@ -38,7 +38,7 @@ export default async function ManagerLayout({children}: PropsType) {
 
 	// const permissionsSet = new Set(auth.permissions);
 	const topicSet = new Set(
-		auth.permissions.map((permisson) => permisson.split(":")[0])
+		auth.permissions.map((permission) => permission.split(":")[0])
 	);
 
 	if (topicSet.has("role")) {
@@ -86,6 +86,14 @@ export default async function ManagerLayout({children}: PropsType) {
 			icon: <Pill className="group-hover:text-[#A6CF52]"/>,
 			label: "Thuốc",
 			path: "/admin/medicines",
+		});
+	}
+
+	if (topicSet.has("invoice-template")) {
+		menuData.push({
+			icon: <FilePenLine className="group-hover:text-[#A6CF52]"/>,
+			label: "Mẫu hóa đơn",
+			path: "/admin/invoice-templates",
 		});
 	}
 

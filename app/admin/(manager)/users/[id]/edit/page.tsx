@@ -16,7 +16,7 @@ export default async function EditUserPage({ params }: PropsType) {
   if (!auth.permissions.includes("user:update")) redirect("/admin/forbidden");
 
   const { id } = await params;
-  let user: Awaited<ReturnType<typeof getUserById>> | null = null;
+  let user: Awaited<ReturnType<typeof getUserById>> | null;
   try {
     user = await getUserById(id);
   } catch {

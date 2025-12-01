@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import {useEffect, useMemo, useRef, useState, useTransition} from "react";
+import {useForm, useWatch} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {format} from "date-fns";
 import Selector from "@/components/selector";
 import TiptapEditor from "@/components/tiptap-editor";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import {Button} from "@/components/ui/button";
+import {Calendar} from "@/components/ui/calendar";
 import {
 	Form,
 	FormControl,
@@ -15,7 +15,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {Input} from "@/components/ui/input";
 import {
 	Popover,
 	PopoverContent,
@@ -28,20 +28,22 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Examination, Medicine, Service } from "@/lib/generated/prisma";
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Printer, Ban } from "lucide-react";
+import {Examination, Medicine, Service} from "@/lib/generated/prisma";
+import {cn} from "@/lib/utils";
+import {CalendarIcon, Printer, Ban} from "lucide-react";
 import ExaminationTypeBadge from "../../_components/examination-type-badge";
 import ExaminationStatusBadge from "../../_components/examination-status-badge";
-import { Badge } from "@/components/ui/badge";
-import { getModeFromStatus } from "../_utils/get-mode-from-status";
-import { createFormSchema, FormValues } from "../_schemas/form-schema";
+import {Badge} from "@/components/ui/badge";
+import {getModeFromStatus} from "../_utils/get-mode-from-status";
+import {createFormSchema, FormValues} from "../_schemas/form-schema";
 import receiveAction from "../_actions/receive";
-import { Spinner } from "@/components/ui/spinner";
+import {Spinner} from "@/components/ui/spinner";
 import examineAction from "../_actions/examine";
 import payAction from "../_actions/pay";
 import cancelExamination from "../../_actions/cancel";
 import updateStatus from "../_actions/update-status";
+import LivePrintInvoiceButton from "@/app/admin/(manager)/examinations/examine/_components/live-print-invoice-button";
+
 type PropsType = {
 	initialFormValue: Partial<
 		Omit<
@@ -61,14 +63,15 @@ type PropsType = {
 		medicines: Omit<Medicine, "createdAt" | "updatedAt">[];
 		services: Omit<Service, "createdAt" | "updatedAt">[];
 		examinationFee: number;
+		date: Date;
 	};
 	returnTo: string;
 };
 export default function ExaminationFormClient({
-	initialFormValue,
-	data,
-	returnTo,
-}: PropsType) {
+																								initialFormValue,
+																								data,
+																								returnTo,
+																							}: PropsType) {
 	const mode = useMemo(
 		() => getModeFromStatus(initialFormValue.status),
 		[initialFormValue.status]
@@ -88,12 +91,15 @@ export default function ExaminationFormClient({
 			services: initialFormValue.services || [],
 			medicines: initialFormValue.medicines || [],
 			note: initialFormValue.note || undefined,
+			discounts: initialFormValue.discounts || [],
 		},
 	});
-	const servicesWatch = useWatch({ control: form.control, name: "services" });
-	const medicinesWatch = useWatch({ control: form.control, name: "medicines" });
+	const servicesWatch = useWatch({control: form.control, name: "services"});
+	const medicinesWatch = useWatch({control: form.control, name: "medicines"});
+	const discountsWatch = useWatch({control: form.control, name: "discounts"});
 	const services = useMemo(() => servicesWatch || [], [servicesWatch]);
 	const medicines = useMemo(() => medicinesWatch || [], [medicinesWatch]);
+	const discounts = useMemo(() => discountsWatch || [], [discountsWatch]);
 	const isDisabled = useMemo(() => {
 		switch (mode) {
 			case "receive":
@@ -104,6 +110,7 @@ export default function ExaminationFormClient({
 					services: true,
 					medicines: true,
 					note: false,
+					discounts: true,
 				};
 			case "examine":
 				return {
@@ -113,6 +120,7 @@ export default function ExaminationFormClient({
 					services: false,
 					medicines: false,
 					note: false,
+					discounts: false,
 				};
 			case "pay":
 				return {
@@ -122,6 +130,7 @@ export default function ExaminationFormClient({
 					services: false,
 					medicines: false,
 					note: false,
+					discounts: false,
 				};
 			default:
 				return {
@@ -131,6 +140,7 @@ export default function ExaminationFormClient({
 					services: true,
 					medicines: true,
 					note: true,
+					discounts: true,
 				};
 		}
 	}, [mode]);
@@ -143,8 +153,16 @@ export default function ExaminationFormClient({
 			(acc, item) => acc + (item.price || 0) * item.quantity,
 			0
 		);
-		return totalServicePrice + totalMedicinePrice + data.examinationFee;
-	}, [services, medicines, data.examinationFee]);
+		const subTotal = totalServicePrice + totalMedicinePrice + data.examinationFee;
+		const totalDiscount = discounts.reduce((acc, curr) => {
+			const val = curr.value || 0;
+			if (curr.type === "percent") {
+				return acc + (subTotal * val) / 100;
+			}
+			return acc + val;
+		}, 0);
+		return Math.max(0, subTotal - totalDiscount);
+	}, [services, medicines, data.examinationFee, discounts]);
 	const serviceOptions = useMemo(
 		() =>
 			data.services.map((s) => ({
@@ -237,7 +255,7 @@ export default function ExaminationFormClient({
 								</span>
 								<div className="min-h-[24px]">
 									{initialFormValue.status ? (
-										<ExaminationStatusBadge status={initialFormValue.status} />
+										<ExaminationStatusBadge status={initialFormValue.status}/>
 									) : (
 										<Badge variant="outline" className="text-gray-500">
 											Mới tạo
@@ -259,7 +277,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="parentName"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>
 												Tên phụ huynh <span className="text-red-500">*</span>
@@ -271,7 +289,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.basicInfo}
 												/>
 											</FormControl>
-											<FormMessage />
+											<FormMessage/>
 										</FormItem>
 									)}
 								/>
@@ -280,7 +298,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="parentPhone"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>
 												SĐT <span className="text-red-500">*</span>
@@ -292,7 +310,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.basicInfo}
 												/>
 											</FormControl>
-											<FormMessage />
+											<FormMessage/>
 										</FormItem>
 									)}
 								/>
@@ -303,7 +321,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="kidName"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>
 												Tên bé <span className="text-red-500">*</span>
@@ -315,7 +333,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.basicInfo}
 												/>
 											</FormControl>
-											<FormMessage />
+											<FormMessage/>
 										</FormItem>
 									)}
 								/>
@@ -324,7 +342,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="kidGender"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>
 												Giới tính <span className="text-red-500">*</span>
@@ -336,7 +354,7 @@ export default function ExaminationFormClient({
 											>
 												<FormControl>
 													<SelectTrigger className="w-full">
-														<SelectValue placeholder="Chọn giới tính" />
+														<SelectValue placeholder="Chọn giới tính"/>
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
@@ -344,7 +362,7 @@ export default function ExaminationFormClient({
 													<SelectItem value="female">Nữ</SelectItem>
 												</SelectContent>
 											</Select>
-											<FormMessage />
+											<FormMessage/>
 										</FormItem>
 									)}
 								/>
@@ -354,7 +372,7 @@ export default function ExaminationFormClient({
 							<FormField
 								control={form.control}
 								name="kidBirthDate"
-								render={({ field }) => (
+								render={({field}) => (
 									<FormItem className="flex flex-col">
 										<FormLabel>
 											Ngày sinh <span className="text-red-500">*</span>
@@ -374,7 +392,7 @@ export default function ExaminationFormClient({
 														) : (
 															<span>Chọn ngày sinh</span>
 														)}
-														<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+														<CalendarIcon className="ml-auto h-4 w-4 opacity-50"/>
 													</Button>
 												</FormControl>
 											</PopoverTrigger>
@@ -391,14 +409,14 @@ export default function ExaminationFormClient({
 												/>
 											</PopoverContent>
 										</Popover>
-										<FormMessage />
+										<FormMessage/>
 									</FormItem>
 								)}
 							/>
 							<FormField
 								control={form.control}
 								name="kidWeight"
-								render={({ field }) => (
+								render={({field}) => (
 									<FormItem>
 										<FormLabel>
 											Cân nặng (kg) <span className="text-red-500">*</span>
@@ -416,7 +434,7 @@ export default function ExaminationFormClient({
 												}}
 											/>
 										</FormControl>
-										<FormMessage />
+										<FormMessage/>
 									</FormItem>
 								)}
 							/>
@@ -424,7 +442,7 @@ export default function ExaminationFormClient({
 					</div>
 				</div>
 				<div className="lg:col-span-7 space-y-6">
-					<div className="bg-white rounded shadow p-6 space-y-4">
+					<div className="bg-white rounded shadow p-6 space-y-4 lg:h-full">
 						<span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
 							Thông tin khám
 						</span>
@@ -433,7 +451,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="symptoms"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>Triệu chứng</FormLabel>
 											<FormControl>
@@ -443,7 +461,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.symptoms}
 												/>
 											</FormControl>
-											<FormMessage />
+											<FormMessage/>
 										</FormItem>
 									)}
 								/>
@@ -452,7 +470,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="diagnose"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>
 												Chẩn đoán
@@ -467,7 +485,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.diagnose}
 												/>
 											</FormControl>
-											<FormMessage />
+											<FormMessage/>
 										</FormItem>
 									)}
 								/>
@@ -476,7 +494,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="services"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>Dịch vụ chỉ định</FormLabel>
 											<FormControl>
@@ -488,7 +506,7 @@ export default function ExaminationFormClient({
 													placeholder="Tìm kiếm dịch vụ..."
 												/>
 											</FormControl>
-											<FormMessage />
+											<FormMessage/>
 										</FormItem>
 									)}
 								/>
@@ -497,7 +515,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="medicines"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>Thuốc kê đơn</FormLabel>
 											<FormControl>
@@ -509,7 +527,7 @@ export default function ExaminationFormClient({
 													placeholder="Tìm kiếm thuốc..."
 												/>
 											</FormControl>
-											<FormMessage />
+											<FormMessage/>
 										</FormItem>
 									)}
 								/>
@@ -518,7 +536,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="note"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>Ghi chú</FormLabel>
 											<FormControl>
@@ -528,7 +546,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.note}
 												/>
 											</FormControl>
-											<FormMessage />
+											<FormMessage/>
 										</FormItem>
 									)}
 								/>
@@ -537,7 +555,7 @@ export default function ExaminationFormClient({
 					</div>
 				</div>
 				<div className="lg:col-span-4 space-y-6 flex flex-col lg:h-full">
-					<div className="bg-white rounded shadow p-6 flex-1 flex flex-col h-full overflow-hidden">
+					<div className="bg-white rounded shadow p-6 flex-1 flex flex-col lg:h-full overflow-hidden">
 						<span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
 							Thông tin thanh toán
 						</span>
@@ -617,9 +635,110 @@ export default function ExaminationFormClient({
 									</span>
 								</div>
 							</div>
+							<div>
+								<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
+									Giảm giá / Chiết khấu
+								</h4>
+								<div className="space-y-4">
+									{discounts.map((_, index) => (
+										<div
+											key={index}
+											className="p-3 border rounded-md bg-gray-50 relative space-y-2"
+										>
+											{!isDisabled.discounts && (
+												<button
+													type="button"
+													className="absolute top-2 right-2 text-red-500 text-xs cursor-pointer"
+													onClick={() => {
+														const updated = [...discounts];
+														updated.splice(index, 1);
+														form.setValue("discounts", updated);
+													}}
+												>
+													Xóa
+												</button>
+											)}
+											<div className="grid grid-cols-3 gap-2">
+												<FormField
+													control={form.control}
+													name={`discounts.${index}.value`}
+													render={({field}) => (
+														<FormItem className="col-span-2">
+															<FormControl>
+																<Input
+																	type="number"
+																	placeholder="Giá trị giảm"
+																	value={field.value || ""}
+																	onChange={(e) => field.onChange(parseFloat(e.target.value))}
+																	disabled={isDisabled.discounts}
+																/>
+															</FormControl>
+														</FormItem>
+													)}
+												/>
+												<FormField
+													control={form.control}
+													name={`discounts.${index}.type`}
+													render={({field}) => (
+														<FormItem>
+															<Select
+																onValueChange={field.onChange}
+																value={field.value || "fix"}
+																disabled={isDisabled.discounts}
+															>
+																<FormControl>
+																	<SelectTrigger className="cursor-pointer">
+																		<SelectValue placeholder="Loại" />
+																	</SelectTrigger>
+																</FormControl>
+																<SelectContent>
+																	<SelectItem value="fix" className="cursor-pointer">VND</SelectItem>
+																	<SelectItem value="percent" className="cursor-pointer">%</SelectItem>
+																</SelectContent>
+															</Select>
+														</FormItem>
+													)}
+												/>
+											</div>
+											<FormField
+												control={form.control}
+												name={`discounts.${index}.description`}
+												render={({field}) => (
+													<FormItem>
+														<FormControl>
+															<Input
+																placeholder="Lý do giảm giá..."
+																{...field}
+																disabled={isDisabled.discounts}
+															/>
+														</FormControl>
+													</FormItem>
+												)}
+											/>
+										</div>
+									))}
+									{!isDisabled.discounts && (
+										<Button
+											type="button"
+											variant="outline"
+											className="w-full"
+											size="sm"
+											onClick={() =>
+												form.setValue("discounts", [
+													...discounts,
+													{value: 0, type: "fix", description: ""},
+												])
+											}
+										>
+											+ Thêm giảm giá
+										</Button>
+									)}
+								</div>
+							</div>
 						</div>
 						<div className="mt-auto pt-4 border-t shrink-0">
-							<div className="flex justify-between items-center text-base font-bold bg-[#A6CF52]/10 p-4 rounded-md mb-4">
+							<div
+								className="flex justify-between items-center text-base font-bold bg-[#A6CF52]/10 p-4 rounded-md mb-4">
 								<span className="text-gray-800">Thành tiền:</span>
 								<span className="text-xl text-[#A6CF52]">
 									{totalAmount.toLocaleString()} đ
@@ -637,7 +756,7 @@ export default function ExaminationFormClient({
 											{isSubmitting || isBacking ? (
 												<>
 													<span className="mr-2">Đang xử lý...</span>
-													<Spinner />
+													<Spinner/>
 												</>
 											) : (
 												renderSubmitText()
@@ -645,16 +764,13 @@ export default function ExaminationFormClient({
 										</Button>
 									)}
 								<div className="grid grid-cols-1 gap-3">
-									{initialFormValue.status === "COMPLETED" ||
-										(initialFormValue.status === "PENDING_PAYMENT" && (
-											<Button
-												type="button"
-												variant="outline"
-												className="w-full border-gray-300"
-											>
-												<Printer className="mr-2 h-4 w-4" /> In phiếu
-											</Button>
-										))}
+									{(initialFormValue.status === "COMPLETED" || initialFormValue.status === "PENDING_PAYMENT" || initialFormValue.status === "IN_PROGRESS") && (
+										<LivePrintInvoiceButton
+											initialFormValue={initialFormValue}
+											fee={data.examinationFee}
+											date={data.date}
+										/>
+									)}
 									{initialFormValue.status &&
 										initialFormValue.status !== "COMPLETED" &&
 										initialFormValue.status !== "CANCELLED" && (
@@ -665,7 +781,7 @@ export default function ExaminationFormClient({
 														variant="outline"
 														className="w-full border-red-200 text-red-600 bg-red-50 hover:bg-red-100"
 													>
-														<Ban className="mr-2 h-4 w-4" /> Hủy ca khám
+														<Ban className="mr-2 h-4 w-4"/> Hủy ca khám
 													</Button>
 												</PopoverTrigger>
 												<PopoverContent className="w-[260px]" side="top">
@@ -681,7 +797,7 @@ export default function ExaminationFormClient({
 															disabled={isCancelling}
 														>
 															{isCancelling ? (
-																<Spinner className="w-4 h-4" />
+																<Spinner className="w-4 h-4"/>
 															) : (
 																"Xác nhận"
 															)}

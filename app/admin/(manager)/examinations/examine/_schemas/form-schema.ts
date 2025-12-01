@@ -5,6 +5,7 @@ import {
 	selectedMedicineSchema,
 	selectedServiceSchema,
 } from "./selected-item-schema";
+import {discountSchema} from "@/app/admin/(manager)/examinations/examine/_schemas/discount-schema";
 export const createFormSchema = (mode: "receive" | "examine" | "pay") => {
 	return z
 		.object({
@@ -25,6 +26,7 @@ export const createFormSchema = (mode: "receive" | "examine" | "pay") => {
 			services: z.array(selectedServiceSchema),
 			medicines: z.array(selectedMedicineSchema),
 			note: z.custom<JSONContent>().optional(),
+			discounts: z.array(discountSchema),
 		})
 		.superRefine((data, ctx) => {
 			if (mode === "examine") {

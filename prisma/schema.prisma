@@ -259,7 +259,7 @@ model Tag {
   articleTags ArticleTag[]
 }
 
-model Invoice {
+model InvoiceTemplate {
   id    String @id @default(uuid())
   name  String
   /// [EditorContentType]

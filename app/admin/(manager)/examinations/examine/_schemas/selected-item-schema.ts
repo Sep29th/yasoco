@@ -11,4 +11,4 @@ export const selectedServiceSchema = z
 
 export const selectedMedicineSchema = selectedServiceSchema.extend({
 	unit: z.string(),
-});
+}).strict();
