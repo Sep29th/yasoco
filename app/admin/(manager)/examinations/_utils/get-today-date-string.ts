@@ -1,8 +1,11 @@
 import { DateString } from "@/utils/types/date-string";
 export function getTodayDateString(): DateString {
-	const today = new Date();
-	const year = today.getFullYear();
-	const month = String(today.getMonth() + 1).padStart(2, "0");
-	const day = String(today.getDate()).padStart(2, "0");
-	return `${year}-${month}-${day}` as DateString;
+	const timeZone = "Asia/Ho_Chi_Minh";
+	const vnDate = new Intl.DateTimeFormat("sv-SE", {
+		timeZone: timeZone,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	}).format(new Date());
+	return vnDate as DateString;
 }
