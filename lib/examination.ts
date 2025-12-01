@@ -1,6 +1,5 @@
 "use server";
 import prisma from "@/lib/prisma";
-import { unstable_cache } from "next/cache";
 import { getMidnightRevalidateSeconds } from "./utils";
 import { DateString } from "@/utils/types/date-string";
 const TIMEZONE = process.env.TZ || "Asia/Ho_Chi_Minh";
@@ -99,7 +98,7 @@ function parseDateStringToEndOfDay(dateString: DateString): Date {
 	const date = new Date(dateString);
 	return getEndOfDayInTimezone(date);
 }
-async function _getTodayAppointmentCount() {
+export async function getTodayAppointmentCount() {
 	const startOfDay = getStartOfDayInTimezone();
 	const endOfDay = getEndOfDayInTimezone();
 	const count = await prisma.examination.count({
@@ -107,11 +106,6 @@ async function _getTodayAppointmentCount() {
 	});
 	return count;
 }
-export const getTodayAppointmentCount = unstable_cache(
-	_getTodayAppointmentCount,
-	["examination", "today"],
-	{ revalidate: getMidnightRevalidateSeconds(), tags: ["examination", "today"] }
-);
 export const getPaginationExamination = async (
 	page: number,
 	pageSize: number,
