@@ -22,9 +22,7 @@ export default async function CreateRole() {
         </div>
       </header>
 
-      <div>
-        <CreateRoleClient />
-      </div>
+      <CreateRoleClient />
     </div>
   );
 }

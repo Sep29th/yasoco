@@ -1,13 +1,13 @@
 "use client";
-import {useRef, useState, useTransition} from "react";
-import {Label} from "@/components/ui/label";
-import {Input} from "@/components/ui/input";
-import {useForm} from "react-hook-form";
+import { useRef, useState, useTransition } from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
 import {
 	FormValues,
 	invoiceTemplateSchema,
 } from "@/app/admin/(manager)/invoice-templates/_schemas/invoice-template-schema";
-import {zodResolver} from "@hookform/resolvers/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	Form,
 	FormControl,
@@ -17,7 +17,7 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import InvoiceTemplateEditor from "@/app/admin/(manager)/invoice-templates/_components/invoice-template-editor";
-import {Button} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -25,13 +25,17 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import {Spinner} from "@/components/ui/spinner";
-import {useReactToPrint} from "react-to-print";
-import {exampleInvoiceTemplateData, invoiceTemplate, pageStyle} from "@/lib/constants/invoice-template";
-import {renderHtmlApplyDataToTiptapJsonContent} from "@/utils/render-html-apply-data-to-tiptap-json-content";
-import {examinationDataToInvoiceTemplateData} from "@/utils/examination-data-to-invoice-template-data";
+import { Spinner } from "@/components/ui/spinner";
+import { useReactToPrint } from "react-to-print";
+import {
+	exampleInvoiceTemplateData,
+	invoiceTemplate,
+	pageStyle,
+} from "@/lib/constants/invoice-template";
+import { renderHtmlApplyDataToTiptapJsonContent } from "@/utils/render-html-apply-data-to-tiptap-json-content";
+import { examinationDataToInvoiceTemplateData } from "@/utils/examination-data-to-invoice-template-data";
 import updateInvoiceTemplate from "@/app/admin/(manager)/invoice-templates/_actions/update-invoice-template";
-import {toast} from "sonner";
+import { toast } from "sonner";
 
 type PropsType = {
 	invoiceTemplateId: string;
@@ -42,9 +46,9 @@ type PropsType = {
 };
 
 export default function InvoiceTemplateFormClient({
-																										invoiceTemplateId,
-																										initialValues,
-																									}: PropsType) {
+	invoiceTemplateId,
+	initialValues,
+}: PropsType) {
 	const form = useForm<FormValues>({
 		resolver: zodResolver(invoiceTemplateSchema),
 		defaultValues: {
@@ -55,27 +59,38 @@ export default function InvoiceTemplateFormClient({
 	const [previewOpen, setPreviewOpen] = useState(false);
 	const [previewHtml, setPreviewHtml] = useState<string>("");
 	const [previewLoading, setPreviewLoading] = useState(false);
+	const [printLoading, setPrintLoading] = useState(false);
 	const [copiedKey, setCopiedKey] = useState<string | null>(null);
 	const contentRef = useRef<HTMLDivElement>(null);
 	const reactToPrintFn = useReactToPrint({
 		contentRef,
 		ignoreGlobalStyles: true,
 		pageStyle,
+		onBeforePrint: async () => {
+			setPrintLoading(true);
+		},
+		onAfterPrint: async () => {
+			setPrintLoading(false);
+		},
+		onPrintError: async () => {
+			setPrintLoading(false);
+		},
 	});
 	const [isPending, startTransition] = useTransition();
 
 	const onSubmit = (values: FormValues) => {
 		startTransition(async () => {
-			const {
-				success,
-				message
-			} = await updateInvoiceTemplate(invoiceTemplateId, values.name, JSON.parse(JSON.stringify(values.value || {type: "doc", content: []})))
+			const { success, message } = await updateInvoiceTemplate(
+				invoiceTemplateId,
+				values.name,
+				JSON.parse(JSON.stringify(values.value || { type: "doc", content: [] }))
+			);
 			if (success) {
 				toast.success("Lưu mẫu hóa đơn thành công", { position: "top-right" });
 			} else {
-				form.setError("name", {message})
+				form.setError("name", { message });
 			}
-		})
+		});
 	};
 
 	const handleOpenPreview = async () => {
@@ -84,8 +99,11 @@ export default function InvoiceTemplateFormClient({
 
 		try {
 			const values = form.getValues();
-			const content = values.value || {type: "doc", content: []}
-			const html = renderHtmlApplyDataToTiptapJsonContent(content, examinationDataToInvoiceTemplateData(exampleInvoiceTemplateData))
+			const content = values.value || { type: "doc", content: [] };
+			const html = renderHtmlApplyDataToTiptapJsonContent(
+				content,
+				examinationDataToInvoiceTemplateData(exampleInvoiceTemplateData)
+			);
 			setPreviewHtml(html);
 		} finally {
 			setPreviewLoading(false);
@@ -113,19 +131,16 @@ export default function InvoiceTemplateFormClient({
 							<FormField
 								control={form.control}
 								name="name"
-								render={({field}) => (
+								render={({ field }) => (
 									<FormItem>
 										<FormLabel>
 											Tên của mẫu hóa đơn
 											<span className="text-red-500">*</span>
 										</FormLabel>
 										<FormControl>
-											<Input
-												placeholder="Ví dụ: Mẫu hóa đơn 1"
-												{...field}
-											/>
+											<Input placeholder="Ví dụ: Mẫu hóa đơn 1" {...field} />
 										</FormControl>
-										<FormMessage/>
+										<FormMessage />
 									</FormItem>
 								)}
 							/>
@@ -144,17 +159,22 @@ export default function InvoiceTemplateFormClient({
 											{argumentsList.map(([templateKey, description]) => (
 												<div
 													className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
-													onClick={() => handleCopy(templateKey, templateKey.replace(/[{}]/g, ''))}
+													onClick={() =>
+														handleCopy(
+															templateKey,
+															templateKey.replace(/[{}]/g, "")
+														)
+													}
 													key={templateKey}
 												>
 													<code className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
 														{templateKey}
 													</code>
 													<span className="text-gray-600">{description}</span>
-													{copiedKey === templateKey.replace(/[{}]/g, '') && (
+													{copiedKey === templateKey.replace(/[{}]/g, "") && (
 														<span className="ml-auto text-[10px] text-green-600">
-														Copied
-													</span>
+															Copied
+														</span>
 													)}
 												</div>
 											))}
@@ -179,7 +199,7 @@ export default function InvoiceTemplateFormClient({
 										size="sm"
 										className="bg-[#A6CF52] hover:bg-[#93b848]"
 									>
-										{isPending && <Spinner/>}
+										{isPending && <Spinner />}
 										Lưu
 									</Button>
 									<Button
@@ -196,7 +216,8 @@ export default function InvoiceTemplateFormClient({
 								<DialogHeader>
 									<DialogTitle>Xem trước mẫu hóa đơn</DialogTitle>
 									<DialogDescription>
-										Mẫu được render với dữ liệu khám ví dụ để bạn kiểm tra layout và bind.
+										Mẫu được render với dữ liệu khám ví dụ để bạn kiểm tra
+										layout và bind.
 									</DialogDescription>
 								</DialogHeader>
 								<div className="flex justify-end mb-2">
@@ -205,15 +226,18 @@ export default function InvoiceTemplateFormClient({
 										size="sm"
 										variant="outline"
 										onClick={reactToPrintFn}
-										disabled={!previewHtml || previewLoading}
+										disabled={!previewHtml || previewLoading || printLoading}
 									>
+										{(!previewHtml || previewLoading || printLoading) && (
+											<Spinner />
+										)}
 										In thử
 									</Button>
 								</div>
 								<div className="bg-gray-100 max-h-[60vh] overflow-y-auto p-4">
 									{previewLoading ? (
 										<div className="flex items-center gap-2 text-sm text-gray-600">
-											<Spinner/>
+											<Spinner />
 											<span>Đang dựng nội dung xem trước...</span>
 										</div>
 									) : (
@@ -228,7 +252,7 @@ export default function InvoiceTemplateFormClient({
 													padding: "15mm",
 													boxSizing: "border-box",
 												}}
-												dangerouslySetInnerHTML={{__html: previewHtml}}
+												dangerouslySetInnerHTML={{ __html: previewHtml }}
 											/>
 										</div>
 									)}
@@ -239,7 +263,7 @@ export default function InvoiceTemplateFormClient({
 							<FormField
 								control={form.control}
 								name="value"
-								render={({field}) => (
+								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Mẫu hóa đơn</FormLabel>
 										<FormControl>
@@ -248,7 +272,7 @@ export default function InvoiceTemplateFormClient({
 												onChange={field.onChange}
 											/>
 										</FormControl>
-										<FormMessage/>
+										<FormMessage />
 									</FormItem>
 								)}
 							/>
