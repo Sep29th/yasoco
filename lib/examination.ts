@@ -1,8 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
-import { getMidnightRevalidateSeconds } from "./utils";
 import { DateString } from "@/utils/types/date-string";
-const TIMEZONE = process.env.TZ || "Asia/Ho_Chi_Minh";
+const TIMEZONE = "Asia/Ho_Chi_Minh";
 function getDateStringInTimezone(date: Date = new Date()): string {
 	return new Intl.DateTimeFormat("en-CA", {
 		timeZone: TIMEZONE,
