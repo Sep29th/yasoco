@@ -221,6 +221,7 @@ export const pageStyle = `
 				font-weight: normal;
 				margin: 0;
 				line-height: 1.2;
+				white-space: pre-wrap;
 			}
 			
 			table {
