@@ -9,7 +9,6 @@ export const getUserCount = async () => {
 };
 
 export const getPaginationUser = async (page: number, pageSize: number) => {
-  console.log("query");
   const where = {
     phone: { not: SUPER_ADMIN_PHONE },
   };
