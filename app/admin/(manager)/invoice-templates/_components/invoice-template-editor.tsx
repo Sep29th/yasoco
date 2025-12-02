@@ -1,14 +1,8 @@
 "use client";
-import {useEffect, useRef} from "react";
-import {EditorContent, JSONContent, useEditor} from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import TextAlign from "@tiptap/extension-text-align";
-import {ImageResize} from "tiptap-extension-resize-image";
-import {Table, TableCell, TableHeader, TableRow} from "@tiptap/extension-table";
-import InvoiceTemplateEditorToolbar
-	from "@/app/admin/(manager)/invoice-templates/_components/invoice-template-editor-toolbar";
-import Heading from "@tiptap/extension-heading";
-import {invoiceTemplateTipTapExtensions} from "@/lib/constants/invoice-template";
+import { useEffect, useRef } from "react";
+import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
+import InvoiceTemplateEditorToolbar from "@/app/admin/(manager)/invoice-templates/_components/invoice-template-editor-toolbar";
+import { invoiceTemplateTipTapExtensions } from "@/lib/constants/invoice-template";
 
 type PropsType = {
 	content: PrismaJson.EditorContentType | undefined;
@@ -17,16 +11,16 @@ type PropsType = {
 };
 
 export default function InvoiceTemplateEditor({
-																								content,
-																								onChange,
-																								disabled = false,
-																							}: PropsType) {
+	content,
+	onChange,
+	disabled = false,
+}: PropsType) {
 	const contentRef = useRef<JSONContent | null>(content ?? null);
 	const isUpdatingRef = useRef<boolean>(false);
 	const editor = useEditor({
 		immediatelyRender: false,
 		extensions: invoiceTemplateTipTapExtensions,
-		content: content || {type: "doc", content: []},
+		content: content || { type: "doc", content: [] },
 		editable: !disabled,
 		editorProps: {
 			attributes: {
@@ -34,7 +28,7 @@ export default function InvoiceTemplateEditor({
 					"prose prose-sm focus:outline-none w-full max-w-full min-h-[130px] leading-snug",
 			},
 		},
-		onUpdate: ({editor}) => {
+		onUpdate: ({ editor }) => {
 			if (!isUpdatingRef.current) {
 				const json = editor.getJSON();
 				contentRef.current = json;
@@ -52,7 +46,7 @@ export default function InvoiceTemplateEditor({
 	useEffect(() => {
 		if (!editor || !editor.isInitialized) return;
 		const currentContent = editor.getJSON();
-		const newContent = content || {type: "doc", content: []};
+		const newContent = content || { type: "doc", content: [] };
 		if (JSON.stringify(currentContent) !== JSON.stringify(newContent)) {
 			isUpdatingRef.current = true;
 			editor.commands.setContent(newContent);
@@ -72,7 +66,7 @@ export default function InvoiceTemplateEditor({
 			}`}
 		>
 			<div className="bg-white border-b border-gray-200 z-10 shadow-sm">
-				<InvoiceTemplateEditorToolbar editor={editor}/>
+				<InvoiceTemplateEditorToolbar editor={editor} />
 			</div>
 			<div className="flex-1 overflow-y-auto p-4 flex justify-center bg-gray-100">
 				<div
@@ -80,12 +74,12 @@ export default function InvoiceTemplateEditor({
 					style={{
 						width: "148mm",
 						minHeight: "210mm",
-						padding: "15mm",
+						padding: "5mm",
 						boxSizing: "border-box",
 					}}
 					onClick={() => !disabled && editor?.chain().focus().run()}
 				>
-					<EditorContent editor={editor}/>
+					<EditorContent editor={editor} />
 				</div>
 			</div>
 		</div>

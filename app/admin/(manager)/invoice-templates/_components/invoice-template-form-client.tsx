@@ -249,7 +249,7 @@ export default function InvoiceTemplateFormClient({
 												style={{
 													width: "148mm",
 													minHeight: "210mm",
-													padding: "15mm",
+													padding: "5mm",
 													boxSizing: "border-box",
 												}}
 												dangerouslySetInnerHTML={{ __html: previewHtml }}

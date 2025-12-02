@@ -9,6 +9,9 @@ export const selectedServiceSchema = z
 	})
 	.strict();
 
-export const selectedMedicineSchema = selectedServiceSchema.extend({
-	unit: z.string(),
-}).strict();
+export const selectedMedicineSchema = selectedServiceSchema
+	.extend({
+		unit: z.string(),
+		dosage: z.string().min(1, "Phải viết liều dùng cho thuốc"),
+	})
+	.strict();

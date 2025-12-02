@@ -43,7 +43,7 @@ export async function createFollowUp(
 			data: {
 				...data,
 				status: ExaminationStatus.BOOKED,
-				type: ExaminationType.PRE_BOOKED,
+				type: ExaminationType.FOLLOW_UP,
 				bookedBy: userInfo,
 			},
 			select: { id: true },

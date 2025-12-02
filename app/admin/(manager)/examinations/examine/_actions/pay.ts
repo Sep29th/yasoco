@@ -35,6 +35,7 @@ export default async function payAction(
 			description: m.description,
 			quantity: m.quantity,
 			unit: m.unit,
+			dosage: m.dosage,
 		}));
 		const [existing, examinationFee] = await Promise.all([
 			prisma.examination.findUnique({

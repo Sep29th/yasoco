@@ -1,6 +1,6 @@
 "use server";
 
-import {S3Client, PutObjectCommand} from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const r2Client = new S3Client({
 	region: process.env.CLOUDFLARE_R2_REGION || "auto",
@@ -43,18 +43,20 @@ type UploadResult = {
 	error?: string;
 };
 
-export default async function uploadImage(formData: FormData): Promise<UploadResult> {
+export default async function uploadImage(
+	formData: FormData
+): Promise<UploadResult> {
 	try {
 		const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
 
 		if (!bucket) {
-			return {success: false, error: "Server configuration error"};
+			return { success: false, error: "Server configuration error" };
 		}
 
 		const file = formData.get("file") as File;
 
 		if (!file) {
-			return {success: false, error: "No file provided"};
+			return { success: false, error: "No file provided" };
 		}
 
 		const arrayBuffer = await file.arrayBuffer();
@@ -76,14 +78,14 @@ export default async function uploadImage(formData: FormData): Promise<UploadRes
 				Body: Buffer.from(arrayBuffer),
 				ContentType: contentType,
 				ContentLength: size,
-			}),
+			})
 		);
 
 		const url = getPublicUrl(key);
 
-		return {success: true, url};
+		return { success: true, url };
 	} catch (error) {
 		console.error("Error uploading image to R2", error);
-		return {success: false, error: "Failed to upload image"};
+		return { success: false, error: "Failed to upload image" };
 	}
 }

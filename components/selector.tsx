@@ -16,6 +16,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { Input } from "./ui/input";
 type SelectorItem = {
 	id: string;
 	name: string;
@@ -23,13 +24,14 @@ type SelectorItem = {
 	unit?: string;
 	description?: string;
 };
-type SelectedItem = SelectorItem & { quantity: number };
+type SelectedItem = SelectorItem & { quantity: number; dosage?: string };
 type PropsType = {
 	options: SelectorItem[];
 	value?: SelectedItem[];
 	onChange?: (value: SelectedItem[]) => void;
 	placeholder?: string;
 	disabled?: boolean;
+	needInput?: boolean;
 };
 export default function Selector({
 	options = [],
@@ -37,6 +39,7 @@ export default function Selector({
 	onChange,
 	placeholder = "Chọn mục...",
 	disabled = false,
+	needInput,
 }: PropsType) {
 	const [open, setOpen] = useState(false);
 	const [internalItems, setInternalItems] = useState<SelectedItem[]>([]);
@@ -51,7 +54,7 @@ export default function Selector({
 		if (exists) {
 			updateQuantity(option.id, 1);
 		} else {
-			setItems([...items, { ...option, quantity: 1 }]);
+			setItems([...items, { ...option, quantity: 1, dosage: "" }]);
 		}
 	};
 	const updateQuantity = (id: string, delta: number) => {
@@ -60,6 +63,13 @@ export default function Selector({
 				item.id === id
 					? { ...item, quantity: Math.max(1, item.quantity + delta) }
 					: item
+			)
+		);
+	};
+	const updateNote = (id: string, newNote: string) => {
+		setItems(
+			items.map((item) =>
+				item.id === id ? { ...item, dosage: newNote } : item
 			)
 		);
 	};
@@ -173,6 +183,16 @@ export default function Selector({
 									</div>
 								)}
 							</div>
+							{needInput && (
+								<Input
+									className={cn("flex-2", disabled && "cursor-not-allowed")}
+									type="text"
+									value={item.dosage || ""}
+									onChange={(e) => updateNote(item.id, e.target.value)}
+									disabled={disabled}
+									placeholder="Liều dùng..."
+								/>
+							)}
 							<div
 								className={cn(
 									"flex items-center border rounded bg-white shrink-0",

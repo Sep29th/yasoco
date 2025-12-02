@@ -4,76 +4,99 @@ import { verifyAccessToken, AccessTokenPayload } from "./lib/jwt";
 import { refreshSession } from "./lib/auth";
 
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+	const { pathname } = request.nextUrl;
 
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    const publicAdminRoutes = ["/admin/sign-in"];
+	if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+		const publicAdminRoutes = ["/admin/sign-in"];
 
-    const accessToken = request.cookies.get("accessToken")?.value;
-    const refreshToken = request.cookies.get("refreshToken")?.value;
+		const accessToken = request.cookies.get("accessToken")?.value;
+		const refreshToken = request.cookies.get("refreshToken")?.value;
 
-    let sessionPayload: AccessTokenPayload | null = null;
-    let newTokens: { accessToken: string; refreshToken: string } | null = null;
+		let sessionPayload: AccessTokenPayload | null = null;
+		let newTokens: { accessToken: string; refreshToken: string } | null = null;
 
-    if (accessToken) {
-      sessionPayload = verifyAccessToken(accessToken);
-    }
+		// [LOGGING] Biến để theo dõi lý do thất bại
+		let logoutReason = "No tokens found";
 
-    if (!sessionPayload && refreshToken) {
-      const refreshResult = await refreshSession(
-        refreshToken,
-        request.headers.get("user-agent")
-      );
-      if (refreshResult) {
-        sessionPayload = refreshResult.payload;
-        newTokens = refreshResult.tokenPair;
-      }
-    }
+		if (accessToken) {
+			sessionPayload = verifyAccessToken(accessToken);
+			if (!sessionPayload) {
+				logoutReason = "Access token invalid or expired";
+			}
+		}
 
-    const isAuthenticated = !!sessionPayload;
+		if (!sessionPayload && refreshToken) {
+			// Access token hỏng, thử dùng refresh token
+			const refreshResult = await refreshSession(
+				refreshToken,
+				request.headers.get("user-agent")
+			);
 
-    if (isAuthenticated && publicAdminRoutes.includes(pathname)) {
-      const returnTo = request.nextUrl.searchParams.get("returnTo");
-      const redirectUrl = new URL(returnTo || "/admin", request.url);
-      return NextResponse.redirect(redirectUrl);
-    }
+			if (refreshResult) {
+				sessionPayload = refreshResult.payload;
+				newTokens = refreshResult.tokenPair;
+			} else {
+				// [LOGGING] Cập nhật lý do nếu refresh thất bại
+				logoutReason = "Refresh token verification failed (expired/revoked)";
+			}
+		} else if (!sessionPayload && accessToken && !refreshToken) {
+			// [LOGGING] Trường hợp có access token nhưng không có refresh token
+			logoutReason = "Access token expired and no refresh token provided";
+		}
 
-    if (!isAuthenticated && !publicAdminRoutes.includes(pathname)) {
-      const returnTo = `${pathname}${request.nextUrl.search || ""}`;
-      const redirectUrl = new URL("/admin/sign-in", request.url);
+		const isAuthenticated = !!sessionPayload;
 
-      if (returnTo) {
-        redirectUrl.searchParams.set("returnTo", returnTo);
-      }
+		// 1. Nếu đã login mà vào trang sign-in -> Đẩy về admin dashboard
+		if (isAuthenticated && publicAdminRoutes.includes(pathname)) {
+			const returnTo = request.nextUrl.searchParams.get("returnTo");
+			const redirectUrl = new URL(returnTo || "/admin", request.url);
+			return NextResponse.redirect(redirectUrl);
+		}
 
-      const response = NextResponse.redirect(redirectUrl);
-      response.cookies.delete("accessToken");
-      response.cookies.delete("refreshToken");
-      return response;
-    }
+		// 2. Nếu chưa login và vào trang bảo mật -> Đẩy về sign-in (LOG Ở ĐÂY)
+		if (!isAuthenticated && !publicAdminRoutes.includes(pathname)) {
+			// [LOGGING] Log ra console server lý do bị đá ra
+			console.warn(
+				`[Middleware Auth] User logged out from ${pathname}. Reason: ${logoutReason}`
+			);
 
-    const response = NextResponse.next();
+			const returnTo = `${pathname}${request.nextUrl.search || ""}`;
+			const redirectUrl = new URL("/admin/sign-in", request.url);
 
-    if (newTokens) {
-      response.cookies.set("accessToken", newTokens.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 15,
-      });
-      response.cookies.set("refreshToken", newTokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-      });
-    }
+			if (returnTo) {
+				redirectUrl.searchParams.set("returnTo", returnTo);
+			}
 
-    return response;
-  }
-  return NextResponse.next();
+			const response = NextResponse.redirect(redirectUrl);
+			response.cookies.delete("accessToken");
+			response.cookies.delete("refreshToken");
+			return response;
+		}
+
+		// 3. Cho phép đi tiếp
+		const response = NextResponse.next();
+
+		// Nếu có token mới (do refresh thành công), set lại cookie
+		if (newTokens) {
+			response.cookies.set("accessToken", newTokens.accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				maxAge: 60 * 15,
+			});
+			response.cookies.set("refreshToken", newTokens.refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				maxAge: 60 * 60 * 24 * 7,
+			});
+		}
+
+		return response;
+	}
+	return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+	matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

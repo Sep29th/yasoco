@@ -90,6 +90,7 @@ export function renderHtmlApplyDataToTiptapJsonContent(
 				"{{stt}}": String(item.order ?? index + 1),
 				"{{ten}}": escapeHtml(item.name),
 				"{{mo_ta}}": escapeHtml(item.description || ""),
+				"{{lieu_dung}}": escapeHtml(item.dosage || ""),
 				"{{don_vi}}": escapeHtml(item.unit || ""),
 				"{{don_gia}}": vndFormatter.format(item.price ?? 0),
 				"{{so_luong}}": String(item.quantity ?? 0),

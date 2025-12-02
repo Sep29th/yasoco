@@ -1,8 +1,6 @@
 import {requireAuth} from "@/lib/auth";
 import {notFound, redirect} from "next/navigation";
-import {InvoiceTemplate} from "@/lib/generated/prisma";
 import {getInvoiceTemplateById} from "@/lib/invoice-template";
-import BackButton from "@/components/back-button";
 import InvoiceTemplateFormClient
 	from "@/app/admin/(manager)/invoice-templates/_components/invoice-template-form-client";
 import {Button} from "@/components/ui/button";

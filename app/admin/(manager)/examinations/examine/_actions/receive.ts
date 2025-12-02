@@ -38,6 +38,7 @@ export default async function receiveAction(
 			description: m.description,
 			quantity: m.quantity,
 			unit: m.unit,
+			dosage: m.dosage,
 		}));
 		if (id) {
 			const existing = await prisma.examination.findUnique({

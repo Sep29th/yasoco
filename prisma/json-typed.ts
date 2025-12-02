@@ -19,6 +19,7 @@ type MedicineSnapshot = {
 	price: number;
 	quantity: number;
 	unit: string;
+	dosage: string;
 };
 type DiscountSnapshot = {
 	type: "fix" | "percent";

@@ -1,10 +1,14 @@
-import {ExaminationDataNeededForInvoiceTemplateType} from "@/utils/types/examination-data-needed-for-invoice-template";
+import { ExaminationDataNeededForInvoiceTemplateType } from "@/utils/types/examination-data-needed-for-invoice-template";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
-import {ImageResize} from "tiptap-extension-resize-image";
-import {Table, TableCell, TableHeader, TableRow} from "@tiptap/extension-table";
+import Document from "@tiptap/extension-document";
+import Paragraph from "@tiptap/extension-paragraph";
+import Text from "@tiptap/extension-text";
+import { Gapcursor } from "@tiptap/extensions";
+import { ImageResize } from "tiptap-extension-resize-image";
+import { TableKit } from "@tiptap/extension-table";
 import Heading from "@tiptap/extension-heading";
-import {Geist} from "next/font/google";
+import { Geist } from "next/font/google";
 
 const geistSans = Geist({
 	subsets: ["latin"],
@@ -28,8 +32,8 @@ export const invoiceTemplateCommonArgument = {
 	["{{tong_tien_dv}}"]: "Tổng tiền dịch vụ",
 	["{{tong_tien_t}}"]: "Tổng tiền thuốc",
 	["{{tong_tien_gg}}"]: "Tổng tiền giảm",
-	["{{tong_hoa_don}}"]: "Tổng tiền hóa đơn"
-}
+	["{{tong_hoa_don}}"]: "Tổng tiền hóa đơn",
+};
 
 export const invoiceTemplateServiceArgument = {
 	["{{#dich_vu}}"]: "Mở liệt kê dịch vụ",
@@ -40,7 +44,7 @@ export const invoiceTemplateServiceArgument = {
 	["{{so_luong}}"]: "Số lượng",
 	["{{thanh_tien}}"]: "Thành tiền",
 	["{{/dich_vu}}"]: "Đóng liệt kê dịch vụ",
-}
+};
 
 export const invoiceTemplateMedicineArgument = {
 	["{{#thuoc}}"]: "Mở liệt kê thuốc",
@@ -49,10 +53,11 @@ export const invoiceTemplateMedicineArgument = {
 	["{{mo_ta}}"]: "Mô tả",
 	["{{don_vi}}"]: "Đơn vị",
 	["{{don_gia}}"]: "Đơn giá",
+	["{{lieu_dung}}"]: "Liều dùng",
 	["{{so_luong}}"]: "Số lượng",
 	["{{thanh_tien}}"]: "Thành tiền",
 	["{{/thuoc}}"]: "Đóng liệt kê thuốc",
-}
+};
 
 export const invoiceTemplateDiscountArgument = {
 	["{{#giam_gia}}"]: "Mở liệt kê giảm giá",
@@ -62,75 +67,91 @@ export const invoiceTemplateDiscountArgument = {
 	["{{mo_ta}}"]: "Mô tả",
 	["{{thanh_tien}}"]: "Thành tiền",
 	["{{/giam_gia}}"]: "Đóng liệt kê giảm giá",
-}
+};
 
 export const invoiceTemplate: [string, [string, string][]][] = [
 	["Thông tin chung", Object.entries(invoiceTemplateCommonArgument)],
 	["Dịch vụ", Object.entries(invoiceTemplateServiceArgument)],
 	["Thuốc", Object.entries(invoiceTemplateMedicineArgument)],
 	["Giảm giá", Object.entries(invoiceTemplateDiscountArgument)],
-]
+];
 
-export const exampleInvoiceTemplateData: ExaminationDataNeededForInvoiceTemplateType = {
-	id: "6facf040-a1bc-4aad-8db7-c331309b5f67",
-	parentName: "Tên phụ huynh",
-	parentPhone: "0xxxxxxxxx",
-	kidName: "Tên bé",
-	kidBirthDate: new Date(),
-	kidGender: true,
-	kidWeight: 50,
-	symptoms: {type: "doc"},
-	diagnose: {type: "doc"},
-	note: {type: "doc", content: [{type: "paragraph", content: [{text: "Không sao cả", type: "text"}]}]},
-	services: [
-		{
-			id: "6facf040-a1bc-4aad-8db7-c331309b5f66",
-			name: "Dịch vụ 1",
-			price: 20000,
-			quantity: 2
+export const exampleInvoiceTemplateData: ExaminationDataNeededForInvoiceTemplateType =
+	{
+		id: "6facf040-a1bc-4aad-8db7-c331309b5f67",
+		parentName: "Tên phụ huynh",
+		parentPhone: "0xxxxxxxxx",
+		kidName: "Tên bé",
+		kidBirthDate: new Date(),
+		kidGender: true,
+		kidWeight: 50,
+		medicalHistory: { type: "doc" },
+		symptoms: { type: "doc" },
+		diagnose: { type: "doc" },
+		note: {
+			type: "doc",
+			content: [
+				{
+					type: "paragraph",
+					content: [{ text: "Không sao cả", type: "text" }],
+				},
+			],
 		},
-		{
-			id: "6facf040-a1bc-4aad-8db7-c331309b5f67",
-			name: "Dịch vụ 2",
-			price: 30000,
-			quantity: 4,
-			description: "Mô tả dịch vụ 2"
-		},
-	],
-	medicines: [
-		{
-			id: "6facf040-a1bc-4aad-8db7-c331309b5f68",
-			name: "Thuốc 1",
-			price: 40000,
-			quantity: 5,
-			unit: "Hộp",
-			description: "Mô tả thuốc 1"
-		},
-		{
-			id: "6facf040-a1bc-4aad-8db7-c331309b5f68",
-			name: "Thuốc 2",
-			price: 50000,
-			quantity: 5,
-			unit: "Lọ",
-		},
-	],
-	date: new Date(),
-	examinationFee: 20000,
-	discounts: [
-		{
-			type: "fix",
-			value: 50000,
-			description: "Giảm số tiền cố định"
-		},
-		{
-			type: "percent",
-			value: 10,
-			description: "Giảm theo phần trăm"
-		},
-	],
-}
+		services: [
+			{
+				id: "6facf040-a1bc-4aad-8db7-c331309b5f66",
+				name: "Dịch vụ 1",
+				price: 20000,
+				quantity: 2,
+			},
+			{
+				id: "6facf040-a1bc-4aad-8db7-c331309b5f67",
+				name: "Dịch vụ 2",
+				price: 30000,
+				quantity: 4,
+				description: "Mô tả dịch vụ 2",
+			},
+		],
+		medicines: [
+			{
+				id: "6facf040-a1bc-4aad-8db7-c331309b5f68",
+				name: "Thuốc 1",
+				price: 40000,
+				quantity: 5,
+				unit: "Hộp",
+				description: "Mô tả thuốc 1",
+				dosage: "Liều dùng thuốc 1",
+			},
+			{
+				id: "6facf040-a1bc-4aad-8db7-c331309b5f68",
+				name: "Thuốc 2",
+				price: 50000,
+				quantity: 5,
+				unit: "Lọ",
+				dosage: "Liều dùng thuốc 2",
+			},
+		],
+		date: new Date(),
+		examinationFee: 20000,
+		discounts: [
+			{
+				type: "fix",
+				value: 50000,
+				description: "Giảm số tiền cố định",
+			},
+			{
+				type: "percent",
+				value: 10,
+				description: "Giảm theo phần trăm",
+			},
+		],
+	};
 
 export const invoiceTemplateTipTapExtensions = [
+	Document,
+	Paragraph,
+	Text,
+	Gapcursor,
 	StarterKit,
 	TextAlign.configure({
 		types: ["heading", "paragraph", "image"],
@@ -138,16 +159,13 @@ export const invoiceTemplateTipTapExtensions = [
 	ImageResize.configure({
 		allowBase64: true,
 		HTMLAttributes: {
-			style: 'display: block; margin-left: auto; margin-right: auto;'
-		}
+			style: "display: block; margin-left: auto; margin-right: auto;",
+		},
 	}),
-	Table.configure({resizable: true}),
-	TableRow,
-	TableHeader,
-	TableCell,
+	TableKit.configure({ table: { resizable: true } }),
 	Heading.configure({
-		levels: [1, 2, 3, 4, 5, 6]
-	})
+		levels: [1, 2, 3, 4, 5, 6],
+	}),
 ];
 
 export const pageStyle = `
@@ -213,7 +231,6 @@ export const pageStyle = `
 			table td {
 				padding: 0;
 				vertical-align: top;
-				width: 50%;
 				border: none !important;
 			}
 			
@@ -254,4 +271,4 @@ export const pageStyle = `
 			ul[data-type="taskList"] li > div {
 				flex: 1 1 auto;
 			}
-		`
+		`;

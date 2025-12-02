@@ -51,7 +51,6 @@ export async function changePasswordAction(payload: {
     data: { password: hashed },
   });
 
-  // Xóa toàn bộ session cũ của user và tạo session mới cho phiên hiện tại
   const agent = (await headers()).get("user-agent") || "unknown";
 
   const result = await prisma.$transaction(async (tx) => {

@@ -385,6 +385,9 @@ export default function ExaminationDetailModalButton({
 																<span className="text-xs text-gray-500">
 																	SL: {item.quantity} {item.unit || ""}
 																</span>
+																<span className="block text-xs text-gray-500">
+																	- {item.dosage}
+																</span>
 															</div>
 															<span className="font-medium text-gray-900 shrink-0">
 																{(

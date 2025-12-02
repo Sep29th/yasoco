@@ -115,6 +115,23 @@ export default function ExaminationTable({
 									<ExaminationDetailModalButton
 										examinationId={examination.id}
 									/>
+									{auth.permissions.includes("examination:create") &&
+										(examination.status === "COMPLETED" ||
+											examination.status === "CANCELLED") && (
+											<Link
+												href={`/admin/examinations/examine?returnTo=${encodeURIComponent(
+													returnTo
+												)}&examinationId=${examination.id}&isReReceive=true`}
+												className="no-underline"
+											>
+												<Button
+													variant="outline"
+													size="sm"
+												>
+													Tiếp nhận lại
+												</Button>
+											</Link>
+										)}
 									{auth.permissions.includes("examination:update") &&
 										(examination.status == "BOOKED" ||
 											examination.status == "PENDING_PAYMENT" ||

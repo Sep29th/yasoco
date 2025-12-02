@@ -120,7 +120,7 @@ export default function PrintInvoiceModalButton({examination}: PropsType) {
 									style={{
 										width: "148mm",
 										minHeight: "210mm",
-										padding: "15mm",
+										padding: "5mm",
 										boxSizing: "border-box",
 									}}
 									dangerouslySetInnerHTML={{__html: previewHtml}}
@@ -145,7 +145,7 @@ export default function PrintInvoiceModalButton({examination}: PropsType) {
 						<div className="bg-gray-100 rounded shadow p-4 space-y-4 col-span-3 overflow-hidden h-full">
 							<div className="flex justify-center h-full">
 								<div
-									className="bg-white shadow-lg p-[15mm] box-border space-y-6"
+									className="bg-white shadow-lg p-[5mm] box-border space-y-6"
 									style={{
 										width: "148mm",
 										height: "210mm",

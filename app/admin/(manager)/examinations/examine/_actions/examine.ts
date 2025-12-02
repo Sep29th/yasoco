@@ -35,6 +35,7 @@ export default async function examineAction(
 			description: m.description,
 			quantity: m.quantity,
 			unit: m.unit,
+			dosage: m.dosage,
 		}));
 		const existing = await prisma.examination.findUnique({
 			where: { id },
