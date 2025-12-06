@@ -180,13 +180,14 @@ model Examination {
 }
 
 model Medicine {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  unit        String
-  price       Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  unit          String
+  originalPrice Float
+  price         Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Service {
@@ -274,6 +275,7 @@ model Invoice {
   serviceFee            Int      @default(0)
   medicineOriginalPrice Int      @default(0)
   medicineSellingPrice  Int      @default(0)
+  totalDiscount         Int      @default(0)
   createdAt             DateTime @default(now())
 
   @@index([createdAt])

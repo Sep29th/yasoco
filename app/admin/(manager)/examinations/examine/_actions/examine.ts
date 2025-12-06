@@ -21,22 +21,6 @@ export default async function examineAction(
 			phone: user.phone,
 			at: new Date(),
 		};
-		const servicesJson = values.services.map((s) => ({
-			id: s.id,
-			name: s.name,
-			price: s.price,
-			description: s.description,
-			quantity: s.quantity,
-		}));
-		const medicinesJson = values.medicines.map((m) => ({
-			id: m.id,
-			name: m.name,
-			price: m.price,
-			description: m.description,
-			quantity: m.quantity,
-			unit: m.unit,
-			dosage: m.dosage,
-		}));
 		const existing = await prisma.examination.findUnique({
 			where: { id },
 			select: { date: true, status: true, type: true },
@@ -50,8 +34,6 @@ export default async function examineAction(
 				...values,
 				kidGender: values.kidGender === "male",
 				status: ExaminationStatus.PENDING_PAYMENT,
-				services: servicesJson,
-				medicines: medicinesJson,
 				examinedBy: userInfo,
 			},
 		});

@@ -2,6 +2,7 @@ export interface RevenueStats {
 	totalExaminationFee: number;
 	totalServiceFee: number;
 	totalMedicineProfit: number;
+	totalDiscount: number;
 	totalRevenue: number;
 }
 

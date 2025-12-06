@@ -38,11 +38,17 @@ const formatCurrency = (value: number) =>
 	);
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 	if (active && payload && payload.length) {
-		const total = payload.reduce((acc: number, p: RechartsPayloadItem) => {
-			return acc + (Number(p.value) || 0);
-		}, 0);
+		const dataItem = payload[0].payload as ChartDataItem;
+		const discount = dataItem.totalDiscount || 0;
+		const grossRevenue = payload.reduce(
+			(acc: number, p: RechartsPayloadItem) => {
+				return acc + (Number(p.value) || 0);
+			},
+			0
+		);
+		const netRevenue = grossRevenue - discount;
 		return (
-			<div className="bg-white p-3 border border-gray-200 shadow-lg rounded-lg text-sm z-50">
+			<div className="bg-white p-3 border border-gray-200 shadow-lg rounded-lg text-sm z-50 min-w-[200px]">
 				<p className="font-bold text-gray-700 mb-2">{label}</p>
 				{payload.map((entry: RechartsPayloadItem, index: number) => (
 					<div key={index} className="flex items-center gap-2 mb-1">
@@ -56,10 +62,19 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 						</span>
 					</div>
 				))}
+				{discount > 0 && (
+					<div className="flex items-center gap-2 mb-1 border-t border-dashed border-gray-100 pt-1">
+						<div className="w-3 h-3 rounded-full bg-red-400" />
+						<span className="text-gray-500">Giảm giá:</span>
+						<span className="font-medium ml-auto text-red-500">
+							-{formatCurrency(discount)}
+						</span>
+					</div>
+				)}
 				<div className="border-t border-gray-100 mt-2 pt-2 flex items-center justify-between gap-4">
-					<span className="font-bold text-gray-800">Tổng doanh thu:</span>
+					<span className="font-bold text-gray-800">Thực thu:</span>
 					<span className="font-bold text-[#A6CF52]">
-						{formatCurrency(total)}
+						{formatCurrency(netRevenue)}
 					</span>
 				</div>
 			</div>
@@ -82,6 +97,7 @@ export function RevenueChart({ data, view }: ChartProps) {
 			examination: item.totalExaminationFee,
 			service: item.totalServiceFee,
 			medicine: item.totalMedicineProfit,
+			totalDiscount: item.totalDiscount,
 		};
 	});
 	return (

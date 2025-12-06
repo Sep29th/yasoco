@@ -16,6 +16,10 @@ export default function MedicineModalContent({ data }: PropsType) {
 					<p className="text-sm text-muted-foreground">Đơn vị: {data.unit}</p>
 				</div>
 				<div className="space-y-2">
+					<p className="text-sm font-medium">Giá gốc</p>
+					<Badge>{formatPrice(data.originalPrice)}</Badge>
+				</div>
+				<div className="space-y-2">
 					<p className="text-sm font-medium">Giá thuốc</p>
 					<Badge>{formatPrice(data.price)}</Badge>
 				</div>

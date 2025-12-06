@@ -61,7 +61,9 @@ export default function Selector({
 		if (exists) {
 			updateQuantity(option.id, 1);
 		} else {
-			setItems([...items, { ...option, quantity: 1, dosage: "" }]);
+			const newItem: SelectedItem = { ...option, quantity: 1 };
+			if (name === "medicines") newItem.dosage = "";
+			setItems([...items, newItem]);
 		}
 	};
 	const updateQuantity = (id: string, delta: number) => {

@@ -21,43 +21,64 @@ export default async function payAction(
 			phone: user.phone,
 			at: new Date(),
 		};
-		const servicesJson = values.services.map((s) => ({
-			id: s.id,
-			name: s.name,
-			price: s.price,
-			description: s.description,
-			quantity: s.quantity,
-		}));
-		const medicinesJson = values.medicines.map((m) => ({
-			id: m.id,
-			name: m.name,
-			price: m.price,
-			description: m.description,
-			quantity: m.quantity,
-			unit: m.unit,
-			dosage: m.dosage,
-		}));
-		const [existing, examinationFee] = await Promise.all([
-			prisma.examination.findUnique({
-				where: { id },
-				select: { date: true, status: true, type: true },
-			}),
-			prisma.examinationFee.findFirst(),
-		]);
-		if (!existing) throw new Error("Examination not found");
-		if (existing.status !== "PENDING_PAYMENT")
-			throw new Error("Trạng thái không hợp lệ");
-		await prisma.examination.update({
-			where: { id },
-			data: {
-				...values,
-				kidGender: values.kidGender === "male",
-				status: ExaminationStatus.COMPLETED,
-				services: servicesJson,
-				medicines: medicinesJson,
-				paidBy: userInfo,
-				examinationFee: examinationFee?.value || 0,
-			},
+		await prisma.$transaction(async (tx) => {
+			const [existing, examinationFee] = await Promise.all([
+				tx.examination.findUnique({
+					where: { id },
+					select: { date: true, status: true, type: true },
+				}),
+				tx.examinationFee.findFirst(),
+			]);
+			if (!existing) throw new Error("Examination not found");
+			if (existing.status !== "PENDING_PAYMENT")
+				throw new Error("Trạng thái không hợp lệ");
+			const serviceFee = values.services.reduce(
+				(prev, curr) => prev + curr.price * curr.quantity,
+				0
+			);
+			const medicineSellingPrice = values.medicines.reduce(
+				(prev, curr) => prev + curr.price * curr.quantity,
+				0
+			);
+			const subTotal =
+				serviceFee + medicineSellingPrice + (examinationFee?.value || 0);
+			const medicineData = await tx.medicine.aggregate({
+				_sum: {
+					originalPrice: true,
+				},
+				where: {
+					id: {
+						in: values.medicines.map((k) => k.id),
+					},
+				},
+			});
+			const totalDiscount = values.discounts.reduce(
+				(prev, curr) =>
+					prev +
+					(curr.type === "fix" ? curr.value : subTotal * (curr.value / 100)),
+				0
+			);
+			await Promise.all([
+				tx.examination.update({
+					where: { id },
+					data: {
+						...values,
+						kidGender: values.kidGender === "male",
+						status: ExaminationStatus.COMPLETED,
+						paidBy: userInfo,
+						examinationFee: examinationFee?.value || 0,
+					},
+				}),
+				tx.invoice.create({
+					data: {
+						examinationFee: examinationFee?.value,
+						serviceFee,
+						medicineOriginalPrice: medicineData._sum.originalPrice ?? 0,
+						medicineSellingPrice,
+						totalDiscount,
+					},
+				}),
+			]);
 		});
 		await pusherServer.trigger("examination", "update", { id });
 		redirect(returnTo);

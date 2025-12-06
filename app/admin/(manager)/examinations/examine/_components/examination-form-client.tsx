@@ -268,7 +268,7 @@ export default function ExaminationFormClient({
 	return (
 		<Form {...form}>
 			<form
-				onSubmit={form.handleSubmit(onSubmit)}
+				onSubmit={form.handleSubmit(onSubmit, (e) => console.log(e))}
 				onKeyDown={handleKeyDown}
 				className="grid grid-cols-1 lg:grid-cols-15 gap-6 h-full"
 			>

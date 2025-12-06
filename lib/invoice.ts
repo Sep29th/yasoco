@@ -36,6 +36,7 @@ function getVietnamRange(
 	return { start: startVal, end: endVal };
 }
 async function fetchHourlyDataUTC(start: Date, end: Date) {
+	console.log(`query >>> ${start} - ${end}`);
 	return await prisma.$queryRaw<
 		Array<{
 			utcTime: Date;
@@ -43,18 +44,34 @@ async function fetchHourlyDataUTC(start: Date, end: Date) {
 			sumService: bigint;
 			sumMedSell: bigint;
 			sumMedOrig: bigint;
+			sumDiscount: bigint;
 		}>
-	>`    SELECT       DATE_TRUNC('hour', "createdAt") as "utcTime",      SUM("examinationFee") as "sumExamination",      SUM("serviceFee") as "sumService",      SUM("medicineSellingPrice") as "sumMedSell",      SUM("medicineOriginalPrice") as "sumMedOrig"    FROM "Invoice"    WHERE "createdAt" >= ${start} AND "createdAt" < ${end}    GROUP BY DATE_TRUNC('hour', "createdAt")  `;
+	>`
+		SELECT 
+			DATE_TRUNC('hour', "createdAt") as "utcTime", 
+			SUM("examinationFee") as "sumExamination", 
+			SUM("serviceFee") as "sumService", 
+			SUM("medicineSellingPrice") as "sumMedSell", 
+			SUM("medicineOriginalPrice") as "sumMedOrig",
+			SUM("totalDiscount") as "sumDiscount"
+		FROM "Invoice"
+		WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
+		GROUP BY DATE_TRUNC('hour', "createdAt")
+	`;
 }
+const createStatsObject = () => ({
+	totalExaminationFee: 0,
+	totalServiceFee: 0,
+	totalMedicineProfit: 0,
+	totalDiscount: 0,
+	totalRevenue: 0,
+});
 async function _getAnalyzeYear(year: number) {
 	const { start, end } = getVietnamRange("year", year);
 	const rawData = await fetchHourlyDataUTC(start, end);
 	const months = Array.from({ length: 12 }, (_, i) => ({
 		month: i + 1,
-		totalExaminationFee: 0,
-		totalServiceFee: 0,
-		totalMedicineProfit: 0,
-		totalRevenue: 0,
+		...createStatsObject(),
 	}));
 	rawData.forEach((row) => {
 		const vnDate = new Date(
@@ -65,25 +82,23 @@ async function _getAnalyzeYear(year: number) {
 		const service = toNum(row.sumService);
 		const medSell = toNum(row.sumMedSell);
 		const medOrig = toNum(row.sumMedOrig);
+		const discount = toNum(row.sumDiscount);
 		const medProfit = medSell - medOrig;
 		months[monthIndex].totalExaminationFee += exam;
 		months[monthIndex].totalServiceFee += service;
 		months[monthIndex].totalMedicineProfit += medProfit;
-		months[monthIndex].totalRevenue += exam + service + medProfit;
+		months[monthIndex].totalDiscount += discount;
+		months[monthIndex].totalRevenue += exam + service + medProfit - discount;
 	});
 	const yearTotal = months.reduce(
 		(acc, curr) => ({
 			totalExaminationFee: acc.totalExaminationFee + curr.totalExaminationFee,
 			totalServiceFee: acc.totalServiceFee + curr.totalServiceFee,
 			totalMedicineProfit: acc.totalMedicineProfit + curr.totalMedicineProfit,
+			totalDiscount: acc.totalDiscount + curr.totalDiscount,
 			totalRevenue: acc.totalRevenue + curr.totalRevenue,
 		}),
-		{
-			totalExaminationFee: 0,
-			totalServiceFee: 0,
-			totalMedicineProfit: 0,
-			totalRevenue: 0,
-		}
+		createStatsObject()
 	);
 	return { year, stats: yearTotal, breakdown: months };
 }
@@ -93,10 +108,7 @@ async function _getAnalyzeMonth(year: number, month: number) {
 	const daysInMonth = new Date(year, month, 0).getDate();
 	const days = Array.from({ length: daysInMonth }, (_, i) => ({
 		day: i + 1,
-		totalExaminationFee: 0,
-		totalServiceFee: 0,
-		totalMedicineProfit: 0,
-		totalRevenue: 0,
+		...createStatsObject(),
 	}));
 	rawData.forEach((row) => {
 		const vnDate = new Date(
@@ -107,12 +119,14 @@ async function _getAnalyzeMonth(year: number, month: number) {
 		const service = toNum(row.sumService);
 		const medSell = toNum(row.sumMedSell);
 		const medOrig = toNum(row.sumMedOrig);
+		const discount = toNum(row.sumDiscount);
 		const medProfit = medSell - medOrig;
 		if (days[dayIndex]) {
 			days[dayIndex].totalExaminationFee += exam;
 			days[dayIndex].totalServiceFee += service;
 			days[dayIndex].totalMedicineProfit += medProfit;
-			days[dayIndex].totalRevenue += exam + service + medProfit;
+			days[dayIndex].totalDiscount += discount;
+			days[dayIndex].totalRevenue += exam + service + medProfit - discount;
 		}
 	});
 	const monthTotal = days.reduce(
@@ -120,14 +134,10 @@ async function _getAnalyzeMonth(year: number, month: number) {
 			totalExaminationFee: acc.totalExaminationFee + curr.totalExaminationFee,
 			totalServiceFee: acc.totalServiceFee + curr.totalServiceFee,
 			totalMedicineProfit: acc.totalMedicineProfit + curr.totalMedicineProfit,
+			totalDiscount: acc.totalDiscount + curr.totalDiscount,
 			totalRevenue: acc.totalRevenue + curr.totalRevenue,
 		}),
-		{
-			totalExaminationFee: 0,
-			totalServiceFee: 0,
-			totalMedicineProfit: 0,
-			totalRevenue: 0,
-		}
+		createStatsObject()
 	);
 	return { year, month, stats: monthTotal, breakdown: days };
 }
@@ -136,10 +146,7 @@ async function _getAnalyzeDay(date: Date) {
 	const rawData = await fetchHourlyDataUTC(start, end);
 	const hours = Array.from({ length: 24 }, (_, i) => ({
 		hour: i,
-		totalExaminationFee: 0,
-		totalServiceFee: 0,
-		totalMedicineProfit: 0,
-		totalRevenue: 0,
+		...createStatsObject(),
 	}));
 	rawData.forEach((row) => {
 		const vnDate = new Date(
@@ -150,12 +157,14 @@ async function _getAnalyzeDay(date: Date) {
 		const service = toNum(row.sumService);
 		const medSell = toNum(row.sumMedSell);
 		const medOrig = toNum(row.sumMedOrig);
+		const discount = toNum(row.sumDiscount);
 		const medProfit = medSell - medOrig;
 		if (hours[hourIndex]) {
 			hours[hourIndex].totalExaminationFee += exam;
 			hours[hourIndex].totalServiceFee += service;
 			hours[hourIndex].totalMedicineProfit += medProfit;
-			hours[hourIndex].totalRevenue += exam + service + medProfit;
+			hours[hourIndex].totalDiscount += discount;
+			hours[hourIndex].totalRevenue += exam + service + medProfit - discount;
 		}
 	});
 	const dayTotal = hours.reduce(
@@ -163,14 +172,10 @@ async function _getAnalyzeDay(date: Date) {
 			totalExaminationFee: acc.totalExaminationFee + curr.totalExaminationFee,
 			totalServiceFee: acc.totalServiceFee + curr.totalServiceFee,
 			totalMedicineProfit: acc.totalMedicineProfit + curr.totalMedicineProfit,
+			totalDiscount: acc.totalDiscount + curr.totalDiscount,
 			totalRevenue: acc.totalRevenue + curr.totalRevenue,
 		}),
-		{
-			totalExaminationFee: 0,
-			totalServiceFee: 0,
-			totalMedicineProfit: 0,
-			totalRevenue: 0,
-		}
+		createStatsObject()
 	);
 	return { date: start, stats: dayTotal, breakdown: hours };
 }

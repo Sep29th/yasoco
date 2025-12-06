@@ -28,11 +28,13 @@ export const createMedicine = async ({
 	name,
 	description,
 	unit,
+	originalPrice,
 	price,
 }: {
 	name: string;
 	description?: string;
 	unit: string;
+	originalPrice: number;
 	price: number;
 }) => {
 	const trimmedName = name.trim();
@@ -41,6 +43,8 @@ export const createMedicine = async ({
 
 	if (!trimmedName) throw new Error("Tên thuốc là bắt buộc");
 	if (!trimmedUnit) throw new Error("Đơn vị là bắt buộc");
+	if (!Number.isFinite(originalPrice) || originalPrice < 0)
+		throw new Error("Giá gốc thuốc không hợp lệ");
 	if (!Number.isFinite(price) || price < 0)
 		throw new Error("Giá thuốc không hợp lệ");
 
@@ -58,6 +62,7 @@ export const createMedicine = async ({
 			name: trimmedName,
 			unit: trimmedUnit,
 			description: trimmedDescription,
+			originalPrice,
 			price,
 		},
 	});
@@ -70,12 +75,14 @@ export const updateMedicine = async ({
 	name,
 	description,
 	unit,
+	originalPrice,
 	price,
 }: {
 	id: string;
 	name: string;
 	description?: string;
 	unit: string;
+	originalPrice: number;
 	price: number;
 }) => {
 	const trimmedName = name.trim();
@@ -84,6 +91,8 @@ export const updateMedicine = async ({
 
 	if (!trimmedName) throw new Error("Tên thuốc là bắt buộc");
 	if (!trimmedUnit) throw new Error("Đơn vị là bắt buộc");
+	if (!Number.isFinite(originalPrice) || originalPrice < 0)
+		throw new Error("Giá gốc thuốc không hợp lệ");
 	if (!Number.isFinite(price) || price < 0)
 		throw new Error("Giá thuốc không hợp lệ");
 
@@ -100,6 +109,7 @@ export const updateMedicine = async ({
 			name: trimmedName,
 			unit: trimmedUnit,
 			description: trimmedDescription,
+			originalPrice,
 			price,
 		},
 	});
