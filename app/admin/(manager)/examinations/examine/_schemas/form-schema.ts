@@ -5,7 +5,7 @@ import {
 	selectedMedicineSchema,
 	selectedServiceSchema,
 } from "./selected-item-schema";
-import {discountSchema} from "@/app/admin/(manager)/examinations/examine/_schemas/discount-schema";
+import { discountSchema } from "@/app/admin/(manager)/examinations/examine/_schemas/discount-schema";
 export const createFormSchema = (mode: "receive" | "examine" | "pay") => {
 	return z
 		.object({
@@ -21,6 +21,7 @@ export const createFormSchema = (mode: "receive" | "examine" | "pay") => {
 			kidWeight: z
 				.number({ message: "Vui lòng nhập cân nặng" })
 				.min(0.1, "Cân nặng phải lớn hơn 0"),
+			medicalHistory: z.custom<JSONContent>().optional(),
 			symptoms: z.custom<JSONContent>().optional(),
 			diagnose: z.custom<JSONContent>().optional(),
 			services: z.array(selectedServiceSchema),

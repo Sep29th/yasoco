@@ -14,6 +14,7 @@ import {renderHtmlApplyDataToTiptapJsonContent} from "@/utils/render-html-apply-
 import {Printer} from "lucide-react";
 import {Skeleton} from "@/components/ui/skeleton";
 import {ExaminationDataNeededForInvoiceTemplateType} from "@/utils/types/examination-data-needed-for-invoice-template";
+import { Spinner } from '@/components/ui/spinner';
 
 type PropsType = {
 	examination: ExaminationDataNeededForInvoiceTemplateType;
@@ -21,6 +22,7 @@ type PropsType = {
 
 export default function PrintInvoiceModalButton({examination}: PropsType) {
 	const [open, setOpen] = useState(false);
+	const [printLoading, setPrintLoading] = useState(false);
 	const [invoiceTemplates, setInvoiceTemplates] = useState<InvoiceTemplate[] | null>(null);
 	const [selectedTemplate, setSelectedTemplate] = useState<InvoiceTemplate | null>(null);
 	const [isPending, startTransition] = useTransition();
@@ -30,6 +32,15 @@ export default function PrintInvoiceModalButton({examination}: PropsType) {
 		contentRef,
 		ignoreGlobalStyles: true,
 		pageStyle,
+		onBeforePrint: async () => {
+			setPrintLoading(true);
+		},
+		onAfterPrint: async () => {
+			setPrintLoading(false);
+		},
+		onPrintError: async () => {
+			setPrintLoading(false);
+		},
 	});
 
 	const loadInvoiceTemplates = () => {
@@ -105,8 +116,10 @@ export default function PrintInvoiceModalButton({examination}: PropsType) {
 								type="submit"
 								size="lg"
 								onClick={reactToPrintFn}
+								disabled={printLoading}
 								className="w-full bg-[#A6CF52] hover:bg-[#93b848] text-white font-bold text-md shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-auto"
 							>
+								{printLoading && <Spinner />}
 								In
 							</Button>
 						</div>

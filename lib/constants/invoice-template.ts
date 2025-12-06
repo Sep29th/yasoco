@@ -23,6 +23,7 @@ export const invoiceTemplateCommonArgument = {
 	["{{ngay_sinh_be}}"]: "Ngày sinh bé",
 	["{{gioi_tinh_be}}"]: "Giới tính bé",
 	["{{can_nang_be}}"]: "Cân nặng bé",
+	["{{tien_su_benh}}"]: "Tiền sử bệnh",
 	["{{ngay_kham}}"]: "Ngày khám",
 	["{{gio_kham}}"]: "Giờ khám",
 	["{{trieu_chung}}"]: "Triệu chứng",
@@ -85,15 +86,39 @@ export const exampleInvoiceTemplateData: ExaminationDataNeededForInvoiceTemplate
 		kidBirthDate: new Date(),
 		kidGender: true,
 		kidWeight: 50,
-		medicalHistory: { type: "doc" },
-		symptoms: { type: "doc" },
-		diagnose: { type: "doc" },
+		medicalHistory: {
+			type: "doc",
+			content: [
+				{
+					type: "paragraph",
+					content: [{ text: "Tiền sử bệnh", type: "text" }],
+				},
+			],
+		},
+		symptoms: {
+			type: "doc",
+			content: [
+				{
+					type: "paragraph",
+					content: [{ text: "Triệu chứng", type: "text" }],
+				},
+			],
+		},
+		diagnose: {
+			type: "doc",
+			content: [
+				{
+					type: "paragraph",
+					content: [{ text: "Chẩn đoán", type: "text" }],
+				},
+			],
+		},
 		note: {
 			type: "doc",
 			content: [
 				{
 					type: "paragraph",
-					content: [{ text: "Không sao cả", type: "text" }],
+					content: [{ text: "Ghi chú", type: "text" }],
 				},
 			],
 		},

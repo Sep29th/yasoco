@@ -135,115 +135,114 @@ const TiptapToolbar: React.FC<TiptapToolbarProps> = ({
 				<ListOrdered size={16} />
 			</Toggle>
 
-			<div className="w-px bg-gray-300 mx-1 h-5 self-center" />
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild disabled={disabled}>
-					<button
-						type="button"
-						className={`p-1.5 rounded transition-colors duration-200 cursor-pointer ${
-							isTableActive
-								? "bg-[#A6CF52] text-white"
-								: "bg-transparent hover:bg-gray-100 text-gray-600"
-						} ${disabled ? "cursor-not-allowed" : ""}`}
-					>
-						<TableIcon size={16} />
-					</button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="start" className="w-56">
-					<DropdownMenuLabel>Thao tác bảng</DropdownMenuLabel>
-					<DropdownMenuItem onClick={insertTable} disabled={isTableActive}>
-						<Plus className="mr-2 h-4 w-4" />
-						<span>Tạo bảng (1x3)</span>
-					</DropdownMenuItem>
-
-					<DropdownMenuSeparator />
-
-					<DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-						Cột
-					</DropdownMenuLabel>
-					<DropdownMenuItem
-						onClick={() => editor.chain().focus().addColumnBefore().run()}
-						disabled={!isTableActive}
-					>
-						<ArrowLeft className="mr-2 h-4 w-4" />
-						<span>Thêm cột bên trái</span>
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => editor.chain().focus().addColumnAfter().run()}
-						disabled={!isTableActive}
-					>
-						<ArrowRight className="mr-2 h-4 w-4" />
-						<span>Thêm cột bên phải</span>
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => editor.chain().focus().deleteColumn().run()}
-						disabled={!isTableActive}
-						className="text-red-600 focus:text-red-600 focus:bg-red-50"
-					>
-						<Trash2 className="mr-2 h-4 w-4" />
-						<span>Xóa cột</span>
-					</DropdownMenuItem>
-
-					<DropdownMenuSeparator />
-
-					<DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-						Hàng
-					</DropdownMenuLabel>
-					<DropdownMenuItem
-						onClick={() => editor.chain().focus().addRowBefore().run()}
-						disabled={!isTableActive}
-					>
-						<ArrowUp className="mr-2 h-4 w-4" />
-						<span>Thêm hàng phía trên</span>
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => editor.chain().focus().addRowAfter().run()}
-						disabled={!isTableActive}
-					>
-						<ArrowDown className="mr-2 h-4 w-4" />
-						<span>Thêm hàng phía dưới</span>
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => editor.chain().focus().deleteRow().run()}
-						disabled={!isTableActive}
-						className="text-red-600 focus:text-red-600 focus:bg-red-50"
-					>
-						<Trash2 className="mr-2 h-4 w-4" />
-						<span>Xóa hàng</span>
-					</DropdownMenuItem>
-
-					<DropdownMenuSeparator />
-
-					<DropdownMenuItem
-						onClick={() => editor.chain().focus().mergeCells().run()}
-						disabled={!isTableActive}
-					>
-						<MoreHorizontal className="mr-2 h-4 w-4" />
-						<span>Gộp ô</span>
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => editor.chain().focus().splitCell().run()}
-						disabled={!isTableActive}
-					>
-						<MoreHorizontal className="mr-2 h-4 w-4" />
-						<span>Chia ô</span>
-					</DropdownMenuItem>
-
-					<DropdownMenuSeparator />
-
-					<DropdownMenuItem
-						onClick={() => editor.chain().focus().deleteTable().run()}
-						disabled={!isTableActive}
-						className="text-red-600 focus:text-red-600 focus:bg-red-50"
-					>
-						<Trash2 className="mr-2 h-4 w-4" />
-						<span>Xóa bảng</span>
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenu>
-
 			{canUploadImage && (
 				<>
+					<div className="w-px bg-gray-300 mx-1 h-5 self-center" />
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild disabled={disabled}>
+							<button
+								type="button"
+								className={`p-1.5 rounded transition-colors duration-200 cursor-pointer ${
+									isTableActive
+										? "bg-[#A6CF52] text-white"
+										: "bg-transparent hover:bg-gray-100 text-gray-600"
+								} ${disabled ? "cursor-not-allowed" : ""}`}
+							>
+								<TableIcon size={16} />
+							</button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="start" className="w-56">
+							<DropdownMenuLabel>Thao tác bảng</DropdownMenuLabel>
+							<DropdownMenuItem onClick={insertTable} disabled={isTableActive}>
+								<Plus className="mr-2 h-4 w-4" />
+								<span>Tạo bảng (1x3)</span>
+							</DropdownMenuItem>
+
+							<DropdownMenuSeparator />
+
+							<DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+								Cột
+							</DropdownMenuLabel>
+							<DropdownMenuItem
+								onClick={() => editor.chain().focus().addColumnBefore().run()}
+								disabled={!isTableActive}
+							>
+								<ArrowLeft className="mr-2 h-4 w-4" />
+								<span>Thêm cột bên trái</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => editor.chain().focus().addColumnAfter().run()}
+								disabled={!isTableActive}
+							>
+								<ArrowRight className="mr-2 h-4 w-4" />
+								<span>Thêm cột bên phải</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => editor.chain().focus().deleteColumn().run()}
+								disabled={!isTableActive}
+								className="text-red-600 focus:text-red-600 focus:bg-red-50"
+							>
+								<Trash2 className="mr-2 h-4 w-4" />
+								<span>Xóa cột</span>
+							</DropdownMenuItem>
+
+							<DropdownMenuSeparator />
+
+							<DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+								Hàng
+							</DropdownMenuLabel>
+							<DropdownMenuItem
+								onClick={() => editor.chain().focus().addRowBefore().run()}
+								disabled={!isTableActive}
+							>
+								<ArrowUp className="mr-2 h-4 w-4" />
+								<span>Thêm hàng phía trên</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => editor.chain().focus().addRowAfter().run()}
+								disabled={!isTableActive}
+							>
+								<ArrowDown className="mr-2 h-4 w-4" />
+								<span>Thêm hàng phía dưới</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => editor.chain().focus().deleteRow().run()}
+								disabled={!isTableActive}
+								className="text-red-600 focus:text-red-600 focus:bg-red-50"
+							>
+								<Trash2 className="mr-2 h-4 w-4" />
+								<span>Xóa hàng</span>
+							</DropdownMenuItem>
+
+							<DropdownMenuSeparator />
+
+							<DropdownMenuItem
+								onClick={() => editor.chain().focus().mergeCells().run()}
+								disabled={!isTableActive}
+							>
+								<MoreHorizontal className="mr-2 h-4 w-4" />
+								<span>Gộp ô</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => editor.chain().focus().splitCell().run()}
+								disabled={!isTableActive}
+							>
+								<MoreHorizontal className="mr-2 h-4 w-4" />
+								<span>Chia ô</span>
+							</DropdownMenuItem>
+
+							<DropdownMenuSeparator />
+
+							<DropdownMenuItem
+								onClick={() => editor.chain().focus().deleteTable().run()}
+								disabled={!isTableActive}
+								className="text-red-600 focus:text-red-600 focus:bg-red-50"
+							>
+								<Trash2 className="mr-2 h-4 w-4" />
+								<span>Xóa bảng</span>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 					<div className="w-px bg-gray-300 mx-1 h-5 self-center" />
 					<button
 						type="button"

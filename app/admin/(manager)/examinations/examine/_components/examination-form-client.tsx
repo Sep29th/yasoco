@@ -94,6 +94,7 @@ export default function ExaminationFormClient({
 			kidGender: initialFormValue.kidGender === false ? "female" : "male",
 			kidBirthDate: initialFormValue.kidBirthDate || new Date(),
 			kidWeight: initialFormValue.kidWeight || 0,
+			medicalHistory: initialFormValue.medicalHistory || undefined,
 			symptoms: initialFormValue.symptoms || undefined,
 			diagnose: initialFormValue.diagnose || undefined,
 			services: initialFormValue.services || [],
@@ -281,7 +282,7 @@ export default function ExaminationFormClient({
 								<span className="text-xs text-muted-foreground">
 									Trạng thái
 								</span>
-								<div className="min-h-[24px]">
+								<div className="min-h-6">
 									{initialFormValue.status ? (
 										<ExaminationStatusBadge status={initialFormValue.status} />
 									) : (
@@ -293,7 +294,7 @@ export default function ExaminationFormClient({
 							</div>
 							<div className="space-y-1">
 								<span className="text-xs text-muted-foreground">Loại khám</span>
-								<div className="min-h-[24px]">
+								<div className="min-h-6">
 									<ExaminationTypeBadge
 										type={initialFormValue.type || "WALK_IN"}
 									/>
@@ -469,6 +470,24 @@ export default function ExaminationFormClient({
 								)}
 							/>
 						</div>
+						<div className="space-y-2">
+							<FormField
+								control={form.control}
+								name="medicalHistory"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Tiền sử bệnh</FormLabel>
+										<FormControl>
+											<TiptapEditor
+												content={field.value}
+												onChange={field.onChange}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
 					</div>
 				</div>
 				<div className="lg:col-span-7 space-y-6">
@@ -556,6 +575,8 @@ export default function ExaminationFormClient({
 													onChange={(value) => field.onChange(value)}
 													disabled={isDisabled.services}
 													placeholder="Tìm kiếm dịch vụ..."
+													form={form}
+													name="services"
 												/>
 											</FormControl>
 											<FormMessage />
@@ -578,9 +599,10 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.medicines}
 													placeholder="Tìm kiếm thuốc..."
 													needInput
+													form={form}
+													name="medicines"
 												/>
 											</FormControl>
-											<FormMessage />
 										</FormItem>
 									)}
 								/>

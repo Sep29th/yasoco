@@ -42,9 +42,7 @@ export function verifyAccessToken(token: string): AccessTokenPayload | null {
 
 export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
 	try {
-		const payload = jwt.verify(token, REFRESH_SECRET) as RefreshTokenPayload;
-		console.log(payload);
-		return payload;
+		return jwt.verify(token, REFRESH_SECRET) as RefreshTokenPayload;
 	} catch {
 		return null;
 	}

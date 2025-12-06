@@ -267,3 +267,14 @@ model InvoiceTemplate {
   /// [EditorContentType]
   value Json?
 }
+
+model Invoice {
+  id                    String   @id @default(uuid())
+  examinationFee        Int      @default(0)
+  serviceFee            Int      @default(0)
+  medicineOriginalPrice Int      @default(0)
+  medicineSellingPrice  Int      @default(0)
+  createdAt             DateTime @default(now())
+
+  @@index([createdAt])
+}

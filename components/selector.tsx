@@ -17,6 +17,9 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "./ui/input";
+import { FormControl, FormField, FormItem, FormMessage } from "./ui/form";
+import { UseFormReturn } from "react-hook-form";
+import { FormValues } from "@/app/admin/(manager)/examinations/examine/_schemas/form-schema";
 type SelectorItem = {
 	id: string;
 	name: string;
@@ -27,6 +30,8 @@ type SelectorItem = {
 type SelectedItem = SelectorItem & { quantity: number; dosage?: string };
 type PropsType = {
 	options: SelectorItem[];
+	name: "services" | "medicines";
+	form: UseFormReturn<FormValues, unknown, FormValues>;
 	value?: SelectedItem[];
 	onChange?: (value: SelectedItem[]) => void;
 	placeholder?: string;
@@ -40,6 +45,8 @@ export default function Selector({
 	placeholder = "Chọn mục...",
 	disabled = false,
 	needInput,
+	name,
+	form,
 }: PropsType) {
 	const [open, setOpen] = useState(false);
 	const [internalItems, setInternalItems] = useState<SelectedItem[]>([]);
@@ -152,7 +159,7 @@ export default function Selector({
 						Chưa có mục nào được chọn
 					</div>
 				) : (
-					items.map((item) => (
+					items.map((item, idx) => (
 						<div
 							key={item.id}
 							className="flex items-center justify-between gap-2 bg-white border p-2 rounded shadow-sm text-sm shrink-0"
@@ -184,14 +191,33 @@ export default function Selector({
 								)}
 							</div>
 							{needInput && (
-								<Input
-									className={cn("flex-2", disabled && "cursor-not-allowed")}
-									type="text"
-									value={item.dosage || ""}
-									onChange={(e) => updateNote(item.id, e.target.value)}
-									disabled={disabled}
-									placeholder="Liều dùng..."
-								/>
+								<>
+									{name === "medicines" && (
+										<FormField
+											control={form.control}
+											name={`medicines.${idx}.dosage`}
+											render={() => (
+												<FormItem className="flex-2">
+													<FormControl>
+														<Input
+															className={cn(
+																"w-full",
+																disabled && "cursor-not-allowed"
+															)}
+															type="text"
+															value={item.dosage || ""}
+															onChange={(e) =>
+																updateNote(item.id, e.target.value)
+															}
+															disabled={disabled}
+															placeholder="Liều dùng..."
+														/>
+													</FormControl>
+												</FormItem>
+											)}
+										/>
+									)}
+								</>
 							)}
 							<div
 								className={cn(

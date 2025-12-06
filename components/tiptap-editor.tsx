@@ -16,6 +16,7 @@ type PropsType = {
 	className?: string;
 	editorClassname?: string;
 	canUploadImage?: boolean;
+	dontShowToolbar?: boolean;
 };
 const isEmptyJSONContent = (content: JSONContent | null): boolean => {
 	if (!content) return true;
@@ -50,6 +51,7 @@ const TiptapEditor: React.FC<PropsType> = ({
 	className,
 	editorClassname,
 	canUploadImage,
+	dontShowToolbar,
 }) => {
 	const contentRef = useRef<JSONContent | null>(content);
 	const isUpdatingRef = useRef(false);
@@ -110,11 +112,13 @@ const TiptapEditor: React.FC<PropsType> = ({
 				className ? className : ""
 			} ${disabled ? "border-gray-200 bg-gray-50" : "border-gray-300"}`}
 		>
-			<TiptapToolbar
-				editor={editor}
-				disabled={disabled}
-				canUploadImage={canUploadImage}
-			/>
+			{!dontShowToolbar && (
+				<TiptapToolbar
+					editor={editor}
+					disabled={disabled}
+					canUploadImage={canUploadImage}
+				/>
+			)}
 			<div
 				className="flex-1 overflow-y-auto min-h-[130px] tiptap-content"
 				onClick={() => !disabled && editor?.chain().focus().run()}

@@ -54,6 +54,9 @@ export function renderHtmlApplyDataToTiptapJsonContent(
 		"{{ngay_sinh_be}}": escapeHtml(getDateVnTimezone(new Date(data.kidBirthDate))),
 		"{{gioi_tinh_be}}": data.kidGender ? "Nam" : "Nữ",
 		"{{can_nang_be}}": escapeHtml(data.kidWeight ?? "Không có"),
+		"{{tien_su_benh}}": data.medicalHistory
+		? sanitizeHtml(generateHTML(data.medicalHistory || {type: "doc"}, invoiceTemplateTipTapExtensions))
+		: "Không có",
 		"{{ngay_kham}}": escapeHtml(getDateVnTimezone(new Date(data.date))),
 		"{{gio_kham}}": escapeHtml(getTimeVnTimezone(new Date(data.date))),
 		"{{trieu_chung}}": data.symptoms
