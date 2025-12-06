@@ -132,6 +132,7 @@ export const getAllMedicines = async () => {
 			unit: true,
 			price: true,
 			description: true,
+			originalPrice: true,
 		},
 	});
 
