@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { DaysOfWeek } from "@/lib/generated/prisma";
+import { cacheLife, cacheTag, revalidateTag } from "next/cache";
 export const ORDERED_DAYS: DaysOfWeek[] = [
 	"MONDAY",
 	"TUESDAY",
@@ -13,6 +14,9 @@ export type ExaminationSessionByDay = { day: DaysOfWeek; sessions: string[] };
 export const getExaminationSessionsByDay = async (): Promise<
 	ExaminationSessionByDay[]
 > => {
+	"use cache";
+	cacheTag("examination-session");
+	cacheLife("max");
 	const rows = await prisma.examinationSession.findMany();
 	const map = new Map<string, string[]>();
 	for (const row of rows) {
@@ -28,6 +32,7 @@ export const getExaminationSessionsByDay = async (): Promise<
 export const updateExaminationSessions = async (
 	payload: Record<DaysOfWeek, string[]>
 ) => {
+	revalidateTag("examination-session", { expire: 0 });
 	await Promise.all(
 		ORDERED_DAYS.map((day) => {
 			const key = day.toLowerCase();

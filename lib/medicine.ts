@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { cacheLife, cacheTag, revalidateTag } from "next/cache";
 
 export const getPaginationMedicines = async (
 	page: number,
@@ -66,6 +67,7 @@ export const createMedicine = async ({
 			price,
 		},
 	});
+	revalidateTag("medicines-all", { expire: 0 });
 
 	return medicine;
 };
@@ -113,17 +115,22 @@ export const updateMedicine = async ({
 			price,
 		},
 	});
+	revalidateTag("medicines-all", { expire: 0 });
 
 	return medicine;
 };
 
 export const deleteMedicine = async (id: string) => {
 	const result = await prisma.medicine.deleteMany({ where: { id } });
+	revalidateTag("medicines-all", { expire: 0 });
 
 	return result.count;
 };
 
 export const getAllMedicines = async () => {
+	"use cache";
+	cacheTag("medicines-all");
+	cacheLife("max");
 	const medicines = await prisma.medicine.findMany({
 		orderBy: { name: "asc" },
 		select: {

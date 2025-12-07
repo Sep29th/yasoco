@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { cacheLife, cacheTag, revalidateTag } from "next/cache";
 
 export const getPaginationServices = async (page: number, pageSize: number) => {
 	const [total, services] = await Promise.all([
@@ -53,7 +54,7 @@ export const createService = async ({
 			price,
 		},
 	});
-
+	revalidateTag("services-all", { expire: 0 });
 	return service;
 };
 
@@ -90,17 +91,23 @@ export const updateService = async ({
 			price,
 		},
 	});
+	revalidateTag("services-all", { expire: 0 });
 
 	return service;
 };
 
 export const deleteService = async (id: string) => {
 	const result = await prisma.service.deleteMany({ where: { id } });
+	revalidateTag("services-all", { expire: 0 });
 
 	return result.count;
 };
 
 export const getAllServices = async () => {
+	"use cache";
+	cacheTag("services-all");
+	cacheLife("max");
+	console.log("getAllServices")
 	const services = await prisma.service.findMany({
 		orderBy: { name: "asc" },
 		select: {

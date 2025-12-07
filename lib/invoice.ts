@@ -36,7 +36,6 @@ function getVietnamRange(
 	return { start: startVal, end: endVal };
 }
 async function fetchHourlyDataUTC(start: Date, end: Date) {
-	console.log(`query >>> ${start} - ${end}`);
 	return await prisma.$queryRaw<
 		Array<{
 			utcTime: Date;

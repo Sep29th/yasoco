@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma"
+import { revalidateTag } from 'next/cache';
 
 export const createInvoiceTemplate = async (name: string) => {
 	try {
@@ -8,7 +9,7 @@ export const createInvoiceTemplate = async (name: string) => {
 			const existed = await tx.invoiceTemplate.findFirst({where: {name}, select: {id: true}});
 
 			if (existed) throw new Error("Tên đã tồn tại");
-
+			revalidateTag("invoice-template-all", { expire: 0 });
 			return await tx.invoiceTemplate.create({
 				data: {name, value: {type: "doc"}},
 				select: {id: true}
