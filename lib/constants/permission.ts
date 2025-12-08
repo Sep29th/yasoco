@@ -208,6 +208,20 @@ export const ACCESS_LEVEL_MAP: Record<
 			"examination-session:delete",
 		],
 	},
+	"invoice-template": {
+		viewer: ["invoice-template:read"],
+		editor: [
+			"invoice-template:read",
+			"invoice-template:create",
+			"invoice-template:update",
+		],
+		manager: [
+			"invoice-template:read",
+			"invoice-template:create",
+			"invoice-template:update",
+			"invoice-template:delete",
+		],
+	},
 	service: {
 		viewer: ["service:read"],
 		editor: ["service:read", "service:create", "service:update"],
