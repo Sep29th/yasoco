@@ -7,8 +7,6 @@ export async function createMedicineAction(payload: {
 	name: string;
 	description?: string;
 	unit: string;
-	originalPrice: number | string;
-	price: number | string;
 }) {
 	const auth = await requireAuth();
 
@@ -19,24 +17,14 @@ export async function createMedicineAction(payload: {
 	const name = String(payload?.name || "").trim();
 	const unit = String(payload?.unit || "").trim();
 	const description = String(payload?.description ?? "").trim();
-	const originalPriceNumber = Number(payload?.originalPrice);
-	const priceNumber = Number(payload?.price);
 
 	if (!name) throw new Error("Tên thuốc là bắt buộc");
 	if (!unit) throw new Error("Đơn vị là bắt buộc");
-	if (!Number.isFinite(originalPriceNumber) || originalPriceNumber < 0) {
-		throw new Error("Giá gốc thuốc không hợp lệ");
-	}
-	if (!Number.isFinite(priceNumber) || priceNumber < 0) {
-		throw new Error("Giá thuốc không hợp lệ");
-	}
 
 	const result = await createMedicine({
 		name,
 		unit,
 		description: description || undefined,
-		originalPrice: originalPriceNumber,
-		price: priceNumber,
 	});
 
 	return { ok: Boolean(result?.id), medicineId: result?.id };

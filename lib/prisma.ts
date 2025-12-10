@@ -38,6 +38,50 @@ const extendedPrismaClient = prismaClient.$extends({
 				return result.map((row) => row.name);
 			},
 		},
+		medicine: {
+			async search(keyword: string, page = 1, pageSize = 10) {
+				const q = (keyword || "").trim();
+				if (!q) return { total: 0, medicines: [] };
+				const offset = (page - 1) * pageSize;
+				const results = await prismaClient.$queryRaw<
+					Array<{
+						id: string;
+						name: string;
+						description: string | null;
+						unit: string;
+						createdAt: Date;
+						updatedAt: Date;
+						rank: number;
+						total_count: bigint;
+					}>
+				>`SELECT id, name, description, unit, "createdAt", "updatedAt", GREATEST(
+              similarity(unaccent(name), unaccent(${q})),
+              similarity(unaccent(COALESCE(description, '')), unaccent(${q}))
+            ) AS rank,
+            COUNT(*) OVER() AS total_count
+          FROM "Medicine"
+          WHERE 
+            unaccent(name) ILIKE unaccent('%' || ${q} || '%') 
+            OR unaccent(COALESCE(description, '')) ILIKE unaccent('%' || ${q} || '%')
+            OR similarity(unaccent(name), unaccent(${q})) > 0.2
+          ORDER BY rank DESC
+          LIMIT ${pageSize}
+          OFFSET ${offset}`;
+				if (results.length === 0) {
+					return { total: 0, medicines: [] };
+				}
+				const total = Number(results[0].total_count);
+				const medicines = results.map((row) => ({
+					id: row.id,
+					name: row.name,
+					description: row.description,
+					unit: row.unit,
+					createdAt: row.createdAt,
+					updatedAt: row.updatedAt,
+				}));
+				return { total, medicines };
+			},
+		},
 	},
 });
 export default extendedPrismaClient;

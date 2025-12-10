@@ -51,8 +51,6 @@ export default async function EditMedicinePage({ params }: PropsType) {
 				initialValues={{
 					name: medicine.name,
 					unit: medicine.unit,
-					originalPrice: medicine.originalPrice,
-					price: medicine.price,
 					description: medicine.description ?? "",
 				}}
 			/>

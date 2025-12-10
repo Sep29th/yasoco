@@ -31,6 +31,7 @@ import {
 	exampleInvoiceTemplateData,
 	invoiceTemplate,
 	pageStyle,
+	printFont,
 } from "@/lib/constants/invoice-template";
 import { renderHtmlApplyDataToTiptapJsonContent } from "@/utils/render-html-apply-data-to-tiptap-json-content";
 import { examinationDataToInvoiceTemplateData } from "@/utils/examination-data-to-invoice-template-data";
@@ -245,7 +246,7 @@ export default function InvoiceTemplateFormClient({
 											<div
 												ref={contentRef}
 												id="invoice-print"
-												className="bg-white shadow-lg print:shadow-none prose prose-sm max-w-none ProseMirror preview"
+												className={`bg-white shadow-lg print:shadow-none prose prose-sm max-w-none ProseMirror preview ${printFont.className}`}
 												style={{
 													width: "148mm",
 													minHeight: "210mm",

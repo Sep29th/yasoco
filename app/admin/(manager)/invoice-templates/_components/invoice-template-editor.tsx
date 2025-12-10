@@ -2,7 +2,10 @@
 import { useEffect, useRef } from "react";
 import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
 import InvoiceTemplateEditorToolbar from "@/app/admin/(manager)/invoice-templates/_components/invoice-template-editor-toolbar";
-import { invoiceTemplateTipTapExtensions } from "@/lib/constants/invoice-template";
+import {
+	invoiceTemplateTipTapExtensions,
+	printFont,
+} from "@/lib/constants/invoice-template";
 
 type PropsType = {
 	content: PrismaJson.EditorContentType | undefined;
@@ -24,8 +27,7 @@ export default function InvoiceTemplateEditor({
 		editable: !disabled,
 		editorProps: {
 			attributes: {
-				class:
-					"prose prose-sm focus:outline-none w-full max-w-full min-h-[130px] leading-snug",
+				class: `prose prose-sm focus:outline-none w-full max-w-full min-h-[130px] leading-snug`,
 			},
 		},
 		onUpdate: ({ editor }) => {
@@ -70,7 +72,7 @@ export default function InvoiceTemplateEditor({
 			</div>
 			<div className="flex-1 overflow-y-auto p-4 flex justify-center bg-gray-100">
 				<div
-					className="bg-white shadow-lg print:shadow-none invoice-template"
+					className={`bg-white shadow-lg print:shadow-none invoice-template ${printFont.className}`}
 					style={{
 						width: "148mm",
 						minHeight: "210mm",

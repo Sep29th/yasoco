@@ -186,7 +186,12 @@ export default function ExaminationDetailModalButton({
 		return (
 			<div className="space-y-1">
 				<span className="text-sm font-medium text-gray-700">{label}</span>
-				<TiptapEditor dontShowToolbar content={content} onChange={() => {}} disabled />
+				<TiptapEditor
+					dontShowToolbar
+					content={content}
+					onChange={() => {}}
+					disabled
+				/>
 			</div>
 		);
 	};
@@ -195,13 +200,7 @@ export default function ExaminationDetailModalButton({
 			(acc, item) => acc + (item.price || 0) * item.quantity,
 			0
 		) || 0;
-	const totalMedicinePrice =
-		examination?.medicines.reduce(
-			(acc, item) => acc + (item.price || 0) * item.quantity,
-			0
-		) || 0;
-	const subTotal =
-		totalServicePrice + totalMedicinePrice + (examination?.examinationFee || 0);
+	const subTotal = totalServicePrice + (examination?.examinationFee || 0);
 	const totalDiscount =
 		examination?.discounts.reduce((acc, curr) => {
 			const val = curr.value || 0;
@@ -364,6 +363,37 @@ export default function ExaminationDetailModalButton({
 											</span>
 										</div>
 										<div className="p-6 py-2 flex-1 overflow-y-auto space-y-4 text-sm">
+											<div className="mt-4">
+												<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
+													Thuốc
+												</h4>
+												<div className="space-y-2">
+													{examination.medicines.length > 0 ? (
+														examination.medicines.map((item, idx) => (
+															<div
+																key={idx}
+																className="flex justify-between items-start text-gray-600"
+															>
+																<div className="flex-1 pr-2">
+																	<span className="block text-gray-900">
+																		{item.name}
+																	</span>
+																	<span className="text-xs text-gray-500">
+																		SL: {item.quantity} {item.unit || ""}
+																	</span>
+																	<span className="block text-xs text-gray-500">
+																		- {item.dosage}
+																	</span>
+																</div>
+															</div>
+														))
+													) : (
+														<p className="text-xs text-gray-400 italic">
+															Không có thuốc
+														</p>
+													)}
+												</div>
+											</div>
 											<div>
 												<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
 													Dịch vụ
@@ -394,43 +424,6 @@ export default function ExaminationDetailModalButton({
 													) : (
 														<p className="text-xs text-gray-400 italic">
 															Không có dịch vụ
-														</p>
-													)}
-												</div>
-											</div>
-											<div className="mt-4">
-												<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
-													Thuốc
-												</h4>
-												<div className="space-y-2">
-													{examination.medicines.length > 0 ? (
-														examination.medicines.map((item, idx) => (
-															<div
-																key={idx}
-																className="flex justify-between items-start text-gray-600"
-															>
-																<div className="flex-1 pr-2">
-																	<span className="block text-gray-900">
-																		{item.name}
-																	</span>
-																	<span className="text-xs text-gray-500">
-																		SL: {item.quantity} {item.unit || ""}
-																	</span>
-																	<span className="block text-xs text-gray-500">
-																		- {item.dosage}
-																	</span>
-																</div>
-																<span className="font-medium text-gray-900 shrink-0">
-																	{(
-																		(item.price || 0) * item.quantity
-																	).toLocaleString()}
-																	đ
-																</span>
-															</div>
-														))
-													) : (
-														<p className="text-xs text-gray-400 italic">
-															Không có thuốc
 														</p>
 													)}
 												</div>

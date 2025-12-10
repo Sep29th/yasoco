@@ -32,8 +32,6 @@ export default async function CreateMedicinePage() {
         initialValues={{
           name: "",
           unit: "",
-          originalPrice: "",
-          price: "",
           description: "",
         }}
       />

@@ -1,9 +1,9 @@
-import {JSONContent} from "@tiptap/react";
-import {InvoiceTemplateDataType} from "@/utils/types/invoice-template-data";
-import {generateHTML} from "@tiptap/html";
-import {invoiceTemplateTipTapExtensions} from "@/lib/constants/invoice-template";
-import {getDateVnTimezone} from "@/utils/get-date-vn-timezone";
-import {getTimeVnTimezone} from "@/utils/get-time-vn-timezone";
+import { JSONContent } from "@tiptap/react";
+import { InvoiceTemplateDataType } from "@/utils/types/invoice-template-data";
+import { generateHTML } from "@tiptap/html";
+import { invoiceTemplateTipTapExtensions } from "@/lib/constants/invoice-template";
+import { getDateVnTimezone } from "@/utils/get-date-vn-timezone";
+import { getTimeVnTimezone } from "@/utils/get-time-vn-timezone";
 
 const vndFormatter = new Intl.NumberFormat("vi-VN");
 
@@ -51,26 +51,47 @@ export function renderHtmlApplyDataToTiptapJsonContent(
 		"{{ten_phu_huynh}}": escapeHtml(data.parentName),
 		"{{sdt_phu_huynh}}": escapeHtml(data.parentPhone),
 		"{{ten_be}}": escapeHtml(data.kidName),
-		"{{ngay_sinh_be}}": escapeHtml(getDateVnTimezone(new Date(data.kidBirthDate))),
+		"{{ngay_sinh_be}}": escapeHtml(
+			getDateVnTimezone(new Date(data.kidBirthDate))
+		),
 		"{{gioi_tinh_be}}": data.kidGender ? "Nam" : "Nữ",
 		"{{can_nang_be}}": escapeHtml(data.kidWeight ?? "Không có"),
 		"{{tien_su_benh}}": data.medicalHistory
-		? sanitizeHtml(generateHTML(data.medicalHistory || {type: "doc"}, invoiceTemplateTipTapExtensions))
-		: "Không có",
+			? sanitizeHtml(
+					generateHTML(
+						data.medicalHistory || { type: "doc" },
+						invoiceTemplateTipTapExtensions
+					)
+			  )
+			: "Không có",
 		"{{ngay_kham}}": escapeHtml(getDateVnTimezone(new Date(data.date))),
 		"{{gio_kham}}": escapeHtml(getTimeVnTimezone(new Date(data.date))),
 		"{{trieu_chung}}": data.symptoms
-			? sanitizeHtml(generateHTML(data.symptoms || {type: "doc"}, invoiceTemplateTipTapExtensions))
+			? sanitizeHtml(
+					generateHTML(
+						data.symptoms || { type: "doc" },
+						invoiceTemplateTipTapExtensions
+					)
+			  )
 			: "Không có",
 		"{{chan_doan}}": data.diagnose
-			? sanitizeHtml(generateHTML(data.diagnose || {type: "doc"}, invoiceTemplateTipTapExtensions))
+			? sanitizeHtml(
+					generateHTML(
+						data.diagnose || { type: "doc" },
+						invoiceTemplateTipTapExtensions
+					)
+			  )
 			: "Không có",
 		"{{ghi_chu}}": data.note
-			? sanitizeHtml(generateHTML(data.note || {type: "doc"}, invoiceTemplateTipTapExtensions))
+			? sanitizeHtml(
+					generateHTML(
+						data.note || { type: "doc" },
+						invoiceTemplateTipTapExtensions
+					)
+			  )
 			: "Không có",
 		"{{tien_kham}}": vndFormatter.format(data.examinationFee ?? 0),
 		"{{tong_tien_dv}}": vndFormatter.format(data.serviceTotal ?? 0),
-		"{{tong_tien_t}}": vndFormatter.format(data.medicineTotal ?? 0),
 		"{{tong_tien_gg}}": vndFormatter.format(data.discountTotal ?? 0),
 		"{{tong_hoa_don}}": vndFormatter.format(data.finalTotal ?? 0),
 	};
@@ -85,7 +106,7 @@ export function renderHtmlApplyDataToTiptapJsonContent(
 				"{{don_gia}}": vndFormatter.format(item.price ?? 0),
 				"{{so_luong}}": String(item.quantity ?? 0),
 				"{{thanh_tien}}": vndFormatter.format(item.sum ?? 0),
-			})
+			}),
 		},
 		thuoc: {
 			items: data.medicines ?? [],
@@ -95,23 +116,22 @@ export function renderHtmlApplyDataToTiptapJsonContent(
 				"{{mo_ta}}": escapeHtml(item.description || ""),
 				"{{lieu_dung}}": escapeHtml(item.dosage || ""),
 				"{{don_vi}}": escapeHtml(item.unit || ""),
-				"{{don_gia}}": vndFormatter.format(item.price ?? 0),
 				"{{so_luong}}": String(item.quantity ?? 0),
-				"{{thanh_tien}}": vndFormatter.format(item.sum ?? 0),
-			})
+			}),
 		},
 		giam_gia: {
 			items: data.discounts ?? [],
 			getParams: (item, index) => ({
 				"{{stt}}": String(item.order ?? index + 1),
-				"{{gia_tri}}": item.type === "fix"
-					? vndFormatter.format(item.value ?? 0)
-					: String(item.value ?? 0),
+				"{{gia_tri}}":
+					item.type === "fix"
+						? vndFormatter.format(item.value ?? 0)
+						: String(item.value ?? 0),
 				"{{don_vi}}": escapeHtml(item.unit || ""),
 				"{{mo_ta}}": escapeHtml(item.description || ""),
 				"{{thanh_tien}}": vndFormatter.format(item.sum ?? 0),
-			})
-		}
+			}),
+		},
 	};
 
 	return rawHtml.replace(
@@ -121,15 +141,20 @@ export function renderHtmlApplyDataToTiptapJsonContent(
 				const section = arraySections[sectionKey as keyof ArraySections];
 				if (!section?.items?.length) return "";
 
-				return section.items.map((item, index) => {
-					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-					// @ts-expect-error
-					const itemParams = section.getParams(item, index);
-					return sectionContent.replace(/{{([\w.]+)}}/g, (m: string, k: string) => {
-						const key = `{{${k}}}`;
-						return itemParams[key] ?? m;
-					});
-				}).join("");
+				return section.items
+					.map((item, index) => {
+						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+						// @ts-expect-error
+						const itemParams = section.getParams(item, index);
+						return sectionContent.replace(
+							/{{([\w.]+)}}/g,
+							(m: string, k: string) => {
+								const key = `{{${k}}}`;
+								return itemParams[key] ?? m;
+							}
+						);
+					})
+					.join("");
 			}
 
 			if (variableKey) {

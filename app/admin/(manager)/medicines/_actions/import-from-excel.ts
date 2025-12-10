@@ -6,8 +6,6 @@ import prisma from "@/lib/prisma";
 type ImportRow = {
 	name: string;
 	unit: string;
-	originalPrice: number;
-	price: number;
 	description?: string;
 };
 
@@ -37,8 +35,6 @@ export async function importMedicinesFromExcelAction(payload: {
 		const name = String(row.name ?? "").trim();
 		const unit = String(row.unit ?? "").trim();
 		const description = String(row.description ?? "").trim();
-		const originalPrice = Number(row.originalPrice);
-		const price = Number(row.price);
 
 		if (!name) {
 			errors.push({ index, message: "Tên thuốc là bắt buộc" });
@@ -48,15 +44,7 @@ export async function importMedicinesFromExcelAction(payload: {
 			errors.push({ index, message: "Đơn vị là bắt buộc" });
 		}
 
-		if (!Number.isFinite(originalPrice) || originalPrice < 0) {
-			errors.push({ index, message: "Giá thuốc không hợp lệ" });
-		}
-
-		if (!Number.isFinite(price) || price < 0) {
-			errors.push({ index, message: "Giá thuốc không hợp lệ" });
-		}
-
-		return { name, unit, description, originalPrice, price };
+		return { name, unit, description };
 	});
 
 	// Kiểm tra trùng tên trong file
@@ -110,8 +98,6 @@ export async function importMedicinesFromExcelAction(payload: {
 				data: {
 					name: row.name,
 					unit: row.unit,
-					originalPrice: row.originalPrice,
-					price: row.price,
 					description: row.description || null,
 				},
 			});

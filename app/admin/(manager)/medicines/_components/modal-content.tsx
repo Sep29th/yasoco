@@ -1,27 +1,13 @@
 import { ModalWrapper } from "@/components/modal-wrapper";
-import { Badge } from "@/components/ui/badge";
 import { Medicine } from "@/lib/generated/prisma";
 type PropsType = { data: Medicine };
 export default function MedicineModalContent({ data }: PropsType) {
-	const formatPrice = (value: number) =>
-		new Intl.NumberFormat("vi-VN", {
-			style: "currency",
-			currency: "VND",
-		}).format(value);
 	return (
 		<ModalWrapper>
 			<div className="grid gap-4 py-4">
 				<div>
 					<h2 className="text-2xl font-bold">{data.name}</h2>
 					<p className="text-sm text-muted-foreground">Đơn vị: {data.unit}</p>
-				</div>
-				<div className="space-y-2">
-					<p className="text-sm font-medium">Giá gốc</p>
-					<Badge>{formatPrice(data.originalPrice)}</Badge>
-				</div>
-				<div className="space-y-2">
-					<p className="text-sm font-medium">Giá thuốc</p>
-					<Badge>{formatPrice(data.price)}</Badge>
 				</div>
 				{data.description && (
 					<div className="space-y-1 text-sm">
@@ -32,6 +18,7 @@ export default function MedicineModalContent({ data }: PropsType) {
 				<div className="text-xs text-muted-foreground">
 					Được tạo lúc
 					{new Intl.DateTimeFormat("vi-VN", {
+						timeZone: "Asia/Ho_Chi_Minh",
 						dateStyle: "medium",
 						timeStyle: "short",
 					}).format(new Date(data.createdAt))}

@@ -36,22 +36,7 @@ export default async function payAction(
 				(prev, curr) => prev + curr.price * curr.quantity,
 				0
 			);
-			const medicineSellingPrice = values.medicines.reduce(
-				(prev, curr) => prev + curr.price * curr.quantity,
-				0
-			);
-			const subTotal =
-				serviceFee + medicineSellingPrice + (examinationFee?.value || 0);
-			const medicineData = await tx.medicine.aggregate({
-				_sum: {
-					originalPrice: true,
-				},
-				where: {
-					id: {
-						in: values.medicines.map((k) => k.id),
-					},
-				},
-			});
+			const subTotal = serviceFee + (examinationFee?.value || 0);
 			const totalDiscount = values.discounts.reduce(
 				(prev, curr) =>
 					prev +
@@ -73,8 +58,6 @@ export default async function payAction(
 					data: {
 						examinationFee: examinationFee?.value,
 						serviceFee,
-						medicineOriginalPrice: medicineData._sum.originalPrice ?? 0,
-						medicineSellingPrice,
 						totalDiscount,
 					},
 				}),

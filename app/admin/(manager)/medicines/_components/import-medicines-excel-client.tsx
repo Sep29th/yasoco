@@ -14,13 +14,9 @@ import {
 } from "@/components/ui/table";
 import { importMedicinesFromExcelAction } from "../_actions/import-from-excel";
 
-// Các cột: [Tên thuốc, Đơn vị, Giá, Mô tả]
-
 type ParsedRow = {
 	name: string;
 	unit: string;
-	originalPrice: string;
-	price: string;
 	description: string;
 };
 
@@ -73,9 +69,7 @@ export default function ImportMedicinesExcelClient() {
 					return {
 						name: String(r[0] ?? "").trim(),
 						unit: String(r[1] ?? "").trim(),
-						originalPrice: String(r[2] ?? "").trim(),
-						price: String(r[3] ?? "").trim(),
-						description: String(r[4] ?? "").trim(),
+						description: String(r[2] ?? "").trim(),
 					};
 				});
 
@@ -129,8 +123,6 @@ export default function ImportMedicinesExcelClient() {
 		const payloadRows = rows.map((row) => ({
 			name: row.name,
 			unit: row.unit,
-			originalPrice: Number(String(row.originalPrice).replace(/\s/g, "")),
-			price: Number(String(row.price).replace(/\s/g, "")),
 			description: row.description,
 		}));
 
@@ -263,8 +255,6 @@ export default function ImportMedicinesExcelClient() {
 											<TableHead className="w-[60px]">#</TableHead>
 											<TableHead>Tên thuốc</TableHead>
 											<TableHead>Đơn vị</TableHead>
-											<TableHead>Giá gốc</TableHead>
-											<TableHead>Giá</TableHead>
 											<TableHead>Mô tả</TableHead>
 											<TableHead>Lỗi</TableHead>
 										</TableRow>
@@ -288,8 +278,6 @@ export default function ImportMedicinesExcelClient() {
 													</TableCell>
 													<TableCell>{row.name}</TableCell>
 													<TableCell>{row.unit}</TableCell>
-													<TableCell>{row.originalPrice}</TableCell>
-													<TableCell>{row.price}</TableCell>
 													<TableCell>{row.description}</TableCell>
 													<TableCell>
 														{errors.length > 0 && (

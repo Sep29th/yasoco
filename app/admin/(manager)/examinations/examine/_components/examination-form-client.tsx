@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/select";
 import { Examination, Medicine, Service } from "@/lib/generated/prisma";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Printer, Ban } from "lucide-react";
+import { CalendarIcon, Ban } from "lucide-react";
 import ExaminationTypeBadge from "../../_components/examination-type-badge";
 import ExaminationStatusBadge from "../../_components/examination-status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -164,7 +164,6 @@ export default function ExaminationFormClient({
 			data.medicines.map((m) => ({
 				id: m.id,
 				name: m.name,
-				price: m.price,
 				unit: m.unit,
 				description: m.description || undefined,
 			})),
@@ -247,9 +246,7 @@ export default function ExaminationFormClient({
 									name="parentName"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>
-												Tên phụ huynh <span className="text-red-500">*</span>
-											</FormLabel>
+											<FormLabel>Tên phụ huynh</FormLabel>
 											<FormControl>
 												<Input
 													placeholder="Ví dụ: Nguyễn Văn A"
@@ -644,21 +641,16 @@ const SubmitPart = ({
 			await cancelExamination(formData);
 		});
 	};
-	const [services, discounts, medicines] = useWatch({
+	const [services, discounts] = useWatch({
 		control: form.control,
-		name: ["services", "discounts", "medicines"],
+		name: ["services", "discounts"],
 	});
 	const totalAmount = useMemo(() => {
 		const totalServicePrice = services.reduce(
 			(acc, item) => acc + (item.price || 0) * item.quantity,
 			0
 		);
-		const totalMedicinePrice = medicines.reduce(
-			(acc, item) => acc + (item.price || 0) * item.quantity,
-			0
-		);
-		const subTotal =
-			totalServicePrice + totalMedicinePrice + data.examinationFee;
+		const subTotal = totalServicePrice + data.examinationFee;
 		const totalDiscount = discounts.reduce((acc, curr) => {
 			const val = curr.value || 0;
 			if (curr.type === "percent") {
@@ -667,7 +659,7 @@ const SubmitPart = ({
 			return acc + val;
 		}, 0);
 		return Math.max(0, subTotal - totalDiscount);
-	}, [services, medicines, data.examinationFee, discounts]);
+	}, [services, data.examinationFee, discounts]);
 	useEffect(() => {
 		return () => {
 			if (
@@ -708,33 +700,6 @@ const SubmitPart = ({
 							))
 						) : (
 							<p className="text-xs text-gray-400 italic">Chưa chọn dịch vụ</p>
-						)}
-					</div>
-				</div>
-				<div className="mt-4">
-					<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
-						Thuốc
-					</h4>
-					<div className="space-y-2">
-						{medicines.length > 0 ? (
-							medicines.map((item, idx) => (
-								<div
-									key={idx}
-									className="flex justify-between items-start text-gray-600"
-								>
-									<div className="flex-1 pr-2">
-										<span className="block text-gray-900">{item.name}</span>
-										<span className="text-xs text-gray-500">
-											SL: {item.quantity} {item.unit || ""}
-										</span>
-									</div>
-									<span className="font-medium text-gray-900 shrink-0">
-										{((item.price || 0) * item.quantity).toLocaleString()}đ
-									</span>
-								</div>
-							))
-						) : (
-							<p className="text-xs text-gray-400 italic">Chưa kê đơn thuốc</p>
 						)}
 					</div>
 				</div>

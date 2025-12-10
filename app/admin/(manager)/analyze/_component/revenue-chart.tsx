@@ -96,7 +96,6 @@ export function RevenueChart({ data, view }: ChartProps) {
 			name,
 			examination: item.totalExaminationFee,
 			service: item.totalServiceFee,
-			medicine: item.totalMedicineProfit,
 			totalDiscount: item.totalDiscount,
 		};
 	});
@@ -152,13 +151,6 @@ export function RevenueChart({ data, view }: ChartProps) {
 								dataKey="service"
 								stackId="a"
 								fill="#64748b"
-								radius={[0, 0, 0, 0]}
-							/>
-							<Bar
-								name="Lãi Thuốc"
-								dataKey="medicine"
-								stackId="a"
-								fill="#A6CF52"
 								radius={[4, 4, 0, 0]}
 							/>
 						</BarChart>

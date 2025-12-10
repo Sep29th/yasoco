@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Check, ChevronsUpDown, Minus, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,13 +17,13 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "./ui/input";
-import { FormControl, FormField, FormItem, FormMessage } from "./ui/form";
+import { FormControl, FormField, FormItem } from "./ui/form";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "@/app/admin/(manager)/examinations/examine/_schemas/form-schema";
 type SelectorItem = {
 	id: string;
 	name: string;
-	price: number;
+	price?: number;
 	unit?: string;
 	description?: string;
 };
@@ -50,13 +50,21 @@ export default function Selector({
 }: PropsType) {
 	const [open, setOpen] = useState(false);
 	const [internalItems, setInternalItems] = useState<SelectedItem[]>([]);
+	const [searchValue, setSearchValue] = useState("");
+	const commandListRef = useRef<HTMLDivElement>(null);
 	const items = value || internalItems;
+	useEffect(() => {
+		if (commandListRef.current) {
+			commandListRef.current.scrollTop = 0;
+		}
+	}, [searchValue]);
 	const setItems = (newItems: SelectedItem[]) => {
 		if (onChange) onChange(newItems);
 		else setInternalItems(newItems);
 	};
 	const handleSelect = (option: SelectorItem) => {
 		setOpen(false);
+		setSearchValue("");
 		const exists = items.find((i) => i.id === option.id);
 		if (exists) {
 			updateQuantity(option.id, 1);
@@ -107,9 +115,16 @@ export default function Selector({
 						className="w-(--radix-popover-trigger-width) p-0"
 						align="start"
 					>
-						<Command>
-							<CommandInput placeholder="Tìm kiếm..." />
-							<CommandList>
+						<Command shouldFilter={true}>
+							<CommandInput
+								placeholder="Tìm kiếm..."
+								value={searchValue}
+								onValueChange={setSearchValue}
+							/>
+							<CommandList
+								ref={commandListRef}
+								className="max-h-[300px] overflow-y-auto"
+							>
 								<CommandEmpty>Không tìm thấy.</CommandEmpty>
 								<CommandGroup>
 									{options.map((option) => (
@@ -134,12 +149,13 @@ export default function Selector({
 														{option.description}
 													</span>
 												)}
-												{option.price && (
-													<span className="text-xs font-medium text-[#A6CF52]">
-														{option.price.toLocaleString()}đ
-														{option.unit && ` / ${option.unit}`}
-													</span>
-												)}
+												<span className="text-xs font-medium text-[#A6CF52]">
+													{option.price && option.price.toLocaleString()}
+													{option.unit &&
+														(option.price
+															? `đ / ${option.unit}`
+															: `${option.unit}`)}
+												</span>
 											</div>
 										</CommandItem>
 									))}
@@ -181,16 +197,15 @@ export default function Selector({
 										{item.description}
 									</div>
 								)}
-								{item.price && (
-									<div className="text-xs text-[#A6CF52] font-medium mt-0.5">
-										{(item.price * item.quantity).toLocaleString()}đ
-										{item.unit && (
-											<span className="text-gray-500 ml-1">
-												({item.quantity} {item.unit})
-											</span>
-										)}
-									</div>
-								)}
+								<div className="text-xs text-[#A6CF52] font-medium mt-0.5">
+									{item.price &&
+										`${(item.price * item.quantity).toLocaleString()}đ`}
+									{item.unit && (
+										<span className="text-xs font-medium text-[#A6CF52]">
+											{item.quantity} {item.unit}
+										</span>
+									)}
+								</div>
 							</div>
 							{needInput && (
 								<>

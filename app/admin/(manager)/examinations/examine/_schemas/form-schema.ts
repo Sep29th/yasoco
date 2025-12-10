@@ -9,7 +9,7 @@ import { discountSchema } from "@/app/admin/(manager)/examinations/examine/_sche
 export const createFormSchema = (mode: "receive" | "examine" | "pay") => {
 	return z
 		.object({
-			parentName: z.string().min(1, "Vui lòng nhập tên phụ huynh"),
+			parentName: z.string(),
 			parentPhone: z
 				.string()
 				.regex(/(84|0[3|5|7|8|9])+([0-9]{8})\b/, "SĐT không đúng định dạng"),

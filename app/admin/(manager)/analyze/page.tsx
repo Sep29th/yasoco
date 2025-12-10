@@ -14,7 +14,7 @@ import { RevenueChart } from "./_component/revenue-chart";
 import { DateFilter } from "./_component/date-filter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, Activity, Pill, Tag } from "lucide-react";
+import { DollarSign, Activity, Tag } from "lucide-react";
 import { requireAuth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 type ViewMode = "day" | "month" | "year";
@@ -91,7 +91,7 @@ export default async function AnalyzePage({
 					</TabsTrigger>
 				</TabsList>
 			</Tabs>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
 				<Card className="border-l-4 border-l-[#A6CF52] shadow-sm">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium text-muted-foreground">
@@ -128,19 +128,6 @@ export default async function AnalyzePage({
 					<CardContent>
 						<div className="text-2xl font-bold">
 							{formatCurrency(stats.totalServiceFee)}
-						</div>
-					</CardContent>
-				</Card>
-				<Card className="shadow-sm">
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium text-muted-foreground">
-							Lãi Thuốc
-						</CardTitle>
-						<Pill className="h-4 w-4 text-[#A6CF52]" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold text-[#A6CF52]">
-							{formatCurrency(stats.totalMedicineProfit)}
 						</div>
 					</CardContent>
 				</Card>

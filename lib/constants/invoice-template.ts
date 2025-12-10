@@ -8,11 +8,13 @@ import { Gapcursor } from "@tiptap/extensions";
 import { ImageResize } from "tiptap-extension-resize-image";
 import { TableKit } from "@tiptap/extension-table";
 import Heading from "@tiptap/extension-heading";
-import { Geist } from "next/font/google";
+import { Noto_Serif } from "next/font/google";
 
-const geistSans = Geist({
-	subsets: ["latin"],
+export const printFont = Noto_Serif({
+	subsets: ["vietnamese", "latin"],
 	display: "swap",
+	style: ["normal", "italic"],
+	variable: "--font-playfair-display",
 });
 
 export const invoiceTemplateCommonArgument = {
@@ -31,8 +33,7 @@ export const invoiceTemplateCommonArgument = {
 	["{{ghi_chu}}"]: "Ghi chú",
 	["{{tien_kham}}"]: "Tiền khám",
 	["{{tong_tien_dv}}"]: "Tổng tiền dịch vụ",
-	["{{tong_tien_t}}"]: "Tổng tiền thuốc",
-	["{{tong_tien_gg}}"]: "Tổng tiền giảm",
+	["{{tong_tien_gg}}"]: "Tổng tiền giảm giá",
 	["{{tong_hoa_don}}"]: "Tổng tiền hóa đơn",
 };
 
@@ -53,10 +54,8 @@ export const invoiceTemplateMedicineArgument = {
 	["{{ten}}"]: "Tên",
 	["{{mo_ta}}"]: "Mô tả",
 	["{{don_vi}}"]: "Đơn vị",
-	["{{don_gia}}"]: "Đơn giá",
 	["{{lieu_dung}}"]: "Liều dùng",
 	["{{so_luong}}"]: "Số lượng",
-	["{{thanh_tien}}"]: "Thành tiền",
 	["{{/thuoc}}"]: "Đóng liệt kê thuốc",
 };
 
@@ -141,7 +140,6 @@ export const exampleInvoiceTemplateData: ExaminationDataNeededForInvoiceTemplate
 			{
 				id: "6facf040-a1bc-4aad-8db7-c331309b5f68",
 				name: "Thuốc 1",
-				price: 40000,
 				quantity: 5,
 				unit: "Hộp",
 				description: "Mô tả thuốc 1",
@@ -150,7 +148,6 @@ export const exampleInvoiceTemplateData: ExaminationDataNeededForInvoiceTemplate
 			{
 				id: "6facf040-a1bc-4aad-8db7-c331309b5f68",
 				name: "Thuốc 2",
-				price: 50000,
 				quantity: 5,
 				unit: "Lọ",
 				dosage: "Liều dùng thuốc 2",
@@ -194,6 +191,8 @@ export const invoiceTemplateTipTapExtensions = [
 ];
 
 export const pageStyle = `
+			@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap');
+
 			@page { 
 				size: A5 portrait;
 				margin: 0;
@@ -207,7 +206,7 @@ export const pageStyle = `
 			}
 			
 			* {
-				font-family: ${geistSans.style.fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+				font-family: ${printFont.style.fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 			}
 			
 			img {

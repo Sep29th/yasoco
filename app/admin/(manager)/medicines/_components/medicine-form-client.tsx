@@ -14,8 +14,6 @@ type PropsType = {
 	initialValues: {
 		name: string;
 		unit: string;
-		originalPrice: number | string;
-		price: number | string;
 		description: string;
 	};
 };
@@ -29,16 +27,6 @@ export default function MedicineFormClient({
 	const [name, setName] = useState(initialValues.name);
 	const [unit, setUnit] = useState(initialValues.unit);
 	const [description, setDescription] = useState(initialValues.description);
-	const [originalPrice, setOriginalPrice] = useState(
-		typeof initialValues.originalPrice === "number"
-			? String(initialValues.originalPrice)
-			: initialValues.originalPrice
-	);
-	const [price, setPrice] = useState(
-		typeof initialValues.price === "number"
-			? String(initialValues.price)
-			: initialValues.price
-	);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -49,8 +37,6 @@ export default function MedicineFormClient({
 		const trimmedName = name.trim();
 		const trimmedUnit = unit.trim();
 		const trimmedDescription = description.trim();
-		const originalPriceNumber = Number(originalPrice.replace(/\s/g, ""));
-		const priceNumber = Number(price.replace(/\s/g, ""));
 
 		if (mode === "edit" && !medicineId) {
 			setError("Thiếu mã thuốc cần cập nhật");
@@ -67,16 +53,6 @@ export default function MedicineFormClient({
 			return;
 		}
 
-		if (!price.trim()) {
-			setError("Giá thuốc không được bỏ trống");
-			return;
-		}
-
-		if (!Number.isFinite(priceNumber) || priceNumber < 0) {
-			setError("Giá thuốc không hợp lệ");
-			return;
-		}
-
 		setLoading(true);
 		try {
 			if (mode === "create") {
@@ -84,8 +60,6 @@ export default function MedicineFormClient({
 					name: trimmedName,
 					unit: trimmedUnit,
 					description: trimmedDescription,
-					originalPrice: originalPriceNumber,
-					price: priceNumber,
 				});
 			} else {
 				await updateMedicineAction({
@@ -93,8 +67,6 @@ export default function MedicineFormClient({
 					name: trimmedName,
 					unit: trimmedUnit,
 					description: trimmedDescription,
-					originalPrice: originalPriceNumber,
-					price: priceNumber,
 				});
 			}
 
@@ -105,32 +77,6 @@ export default function MedicineFormClient({
 		} finally {
 			setLoading(false);
 		}
-	};
-
-	const renderPreviewOriginalPrice = () => {
-		const raw = originalPrice.replace(/\s/g, "");
-		const value = Number(raw);
-
-		if (!raw) return "Chưa nhập giá";
-		if (!Number.isFinite(value) || value < 0) return originalPrice;
-
-		return new Intl.NumberFormat("vi-VN", {
-			style: "currency",
-			currency: "VND",
-		}).format(value);
-	};
-
-	const renderPreviewPrice = () => {
-		const raw = price.replace(/\s/g, "");
-		const value = Number(raw);
-
-		if (!raw) return "Chưa nhập giá";
-		if (!Number.isFinite(value) || value < 0) return price;
-
-		return new Intl.NumberFormat("vi-VN", {
-			style: "currency",
-			currency: "VND",
-		}).format(value);
 	};
 
 	return (
@@ -157,26 +103,6 @@ export default function MedicineFormClient({
 							value={unit}
 							onChange={(e) => setUnit(e.target.value)}
 							placeholder="Ví dụ: Viên, chai, hộp"
-						/>
-					</div>
-
-					<div className="space-y-2">
-						<Label htmlFor="originalPrice">Giá gốc (VND)</Label>
-						<Input
-							id="originalPrice"
-							value={originalPrice}
-							onChange={(e) => setOriginalPrice(e.target.value)}
-							placeholder="Ví dụ: 40000"
-						/>
-					</div>
-
-					<div className="space-y-2">
-						<Label htmlFor="price">Giá (VND)</Label>
-						<Input
-							id="price"
-							value={price}
-							onChange={(e) => setPrice(e.target.value)}
-							placeholder="Ví dụ: 50000"
 						/>
 					</div>
 
@@ -240,8 +166,6 @@ export default function MedicineFormClient({
 						{description && (
 							<p className="text-sm text-muted-foreground">{description}</p>
 						)}
-						<p className="text-sm">Giá gốc: {renderPreviewOriginalPrice()}</p>
-						<p className="text-sm">Giá: {renderPreviewPrice()}</p>
 					</div>
 				</div>
 			</div>

@@ -41,8 +41,6 @@ async function fetchHourlyDataUTC(start: Date, end: Date) {
 			utcTime: Date;
 			sumExamination: bigint;
 			sumService: bigint;
-			sumMedSell: bigint;
-			sumMedOrig: bigint;
 			sumDiscount: bigint;
 		}>
 	>`
@@ -50,8 +48,6 @@ async function fetchHourlyDataUTC(start: Date, end: Date) {
 			DATE_TRUNC('hour', "createdAt") as "utcTime", 
 			SUM("examinationFee") as "sumExamination", 
 			SUM("serviceFee") as "sumService", 
-			SUM("medicineSellingPrice") as "sumMedSell", 
-			SUM("medicineOriginalPrice") as "sumMedOrig",
 			SUM("totalDiscount") as "sumDiscount"
 		FROM "Invoice"
 		WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
@@ -61,7 +57,6 @@ async function fetchHourlyDataUTC(start: Date, end: Date) {
 const createStatsObject = () => ({
 	totalExaminationFee: 0,
 	totalServiceFee: 0,
-	totalMedicineProfit: 0,
 	totalDiscount: 0,
 	totalRevenue: 0,
 });
@@ -79,21 +74,16 @@ async function _getAnalyzeYear(year: number) {
 		const monthIndex = vnDate.getMonth();
 		const exam = toNum(row.sumExamination);
 		const service = toNum(row.sumService);
-		const medSell = toNum(row.sumMedSell);
-		const medOrig = toNum(row.sumMedOrig);
 		const discount = toNum(row.sumDiscount);
-		const medProfit = medSell - medOrig;
 		months[monthIndex].totalExaminationFee += exam;
 		months[monthIndex].totalServiceFee += service;
-		months[monthIndex].totalMedicineProfit += medProfit;
 		months[monthIndex].totalDiscount += discount;
-		months[monthIndex].totalRevenue += exam + service + medProfit - discount;
+		months[monthIndex].totalRevenue += exam + service - discount;
 	});
 	const yearTotal = months.reduce(
 		(acc, curr) => ({
 			totalExaminationFee: acc.totalExaminationFee + curr.totalExaminationFee,
 			totalServiceFee: acc.totalServiceFee + curr.totalServiceFee,
-			totalMedicineProfit: acc.totalMedicineProfit + curr.totalMedicineProfit,
 			totalDiscount: acc.totalDiscount + curr.totalDiscount,
 			totalRevenue: acc.totalRevenue + curr.totalRevenue,
 		}),
@@ -116,23 +106,18 @@ async function _getAnalyzeMonth(year: number, month: number) {
 		const dayIndex = vnDate.getDate() - 1;
 		const exam = toNum(row.sumExamination);
 		const service = toNum(row.sumService);
-		const medSell = toNum(row.sumMedSell);
-		const medOrig = toNum(row.sumMedOrig);
 		const discount = toNum(row.sumDiscount);
-		const medProfit = medSell - medOrig;
 		if (days[dayIndex]) {
 			days[dayIndex].totalExaminationFee += exam;
 			days[dayIndex].totalServiceFee += service;
-			days[dayIndex].totalMedicineProfit += medProfit;
 			days[dayIndex].totalDiscount += discount;
-			days[dayIndex].totalRevenue += exam + service + medProfit - discount;
+			days[dayIndex].totalRevenue += exam + service - discount;
 		}
 	});
 	const monthTotal = days.reduce(
 		(acc, curr) => ({
 			totalExaminationFee: acc.totalExaminationFee + curr.totalExaminationFee,
 			totalServiceFee: acc.totalServiceFee + curr.totalServiceFee,
-			totalMedicineProfit: acc.totalMedicineProfit + curr.totalMedicineProfit,
 			totalDiscount: acc.totalDiscount + curr.totalDiscount,
 			totalRevenue: acc.totalRevenue + curr.totalRevenue,
 		}),
@@ -154,23 +139,18 @@ async function _getAnalyzeDay(date: Date) {
 		const hourIndex = vnDate.getHours();
 		const exam = toNum(row.sumExamination);
 		const service = toNum(row.sumService);
-		const medSell = toNum(row.sumMedSell);
-		const medOrig = toNum(row.sumMedOrig);
 		const discount = toNum(row.sumDiscount);
-		const medProfit = medSell - medOrig;
 		if (hours[hourIndex]) {
 			hours[hourIndex].totalExaminationFee += exam;
 			hours[hourIndex].totalServiceFee += service;
-			hours[hourIndex].totalMedicineProfit += medProfit;
 			hours[hourIndex].totalDiscount += discount;
-			hours[hourIndex].totalRevenue += exam + service + medProfit - discount;
+			hours[hourIndex].totalRevenue += exam + service - discount;
 		}
 	});
 	const dayTotal = hours.reduce(
 		(acc, curr) => ({
 			totalExaminationFee: acc.totalExaminationFee + curr.totalExaminationFee,
 			totalServiceFee: acc.totalServiceFee + curr.totalServiceFee,
-			totalMedicineProfit: acc.totalMedicineProfit + curr.totalMedicineProfit,
 			totalDiscount: acc.totalDiscount + curr.totalDiscount,
 			totalRevenue: acc.totalRevenue + curr.totalRevenue,
 		}),

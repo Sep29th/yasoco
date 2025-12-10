@@ -3,8 +3,12 @@ import { cacheLife, cacheTag, revalidateTag } from "next/cache";
 
 export const getPaginationMedicines = async (
 	page: number,
-	pageSize: number
+	pageSize: number,
+	keyword?: string
 ) => {
+	if (keyword && keyword.trim() !== "") {
+		return await prisma.medicine.search(keyword, page, pageSize);
+	}
 	const [total, medicines] = await Promise.all([
 		prisma.medicine.count(),
 		prisma.medicine.findMany({
@@ -13,7 +17,6 @@ export const getPaginationMedicines = async (
 			take: pageSize,
 		}),
 	]);
-
 	return { total, medicines };
 };
 
@@ -29,14 +32,10 @@ export const createMedicine = async ({
 	name,
 	description,
 	unit,
-	originalPrice,
-	price,
 }: {
 	name: string;
 	description?: string;
 	unit: string;
-	originalPrice: number;
-	price: number;
 }) => {
 	const trimmedName = name.trim();
 	const trimmedUnit = unit.trim();
@@ -44,10 +43,6 @@ export const createMedicine = async ({
 
 	if (!trimmedName) throw new Error("Tên thuốc là bắt buộc");
 	if (!trimmedUnit) throw new Error("Đơn vị là bắt buộc");
-	if (!Number.isFinite(originalPrice) || originalPrice < 0)
-		throw new Error("Giá gốc thuốc không hợp lệ");
-	if (!Number.isFinite(price) || price < 0)
-		throw new Error("Giá thuốc không hợp lệ");
 
 	const existed = await prisma.medicine.findFirst({
 		where: {
@@ -63,8 +58,6 @@ export const createMedicine = async ({
 			name: trimmedName,
 			unit: trimmedUnit,
 			description: trimmedDescription,
-			originalPrice,
-			price,
 		},
 	});
 	revalidateTag("medicines-all", { expire: 0 });
@@ -77,15 +70,11 @@ export const updateMedicine = async ({
 	name,
 	description,
 	unit,
-	originalPrice,
-	price,
 }: {
 	id: string;
 	name: string;
 	description?: string;
 	unit: string;
-	originalPrice: number;
-	price: number;
 }) => {
 	const trimmedName = name.trim();
 	const trimmedUnit = unit.trim();
@@ -93,10 +82,6 @@ export const updateMedicine = async ({
 
 	if (!trimmedName) throw new Error("Tên thuốc là bắt buộc");
 	if (!trimmedUnit) throw new Error("Đơn vị là bắt buộc");
-	if (!Number.isFinite(originalPrice) || originalPrice < 0)
-		throw new Error("Giá gốc thuốc không hợp lệ");
-	if (!Number.isFinite(price) || price < 0)
-		throw new Error("Giá thuốc không hợp lệ");
 
 	const existed = await prisma.medicine.findUnique({
 		where: { id },
@@ -111,8 +96,6 @@ export const updateMedicine = async ({
 			name: trimmedName,
 			unit: trimmedUnit,
 			description: trimmedDescription,
-			originalPrice,
-			price,
 		},
 	});
 	revalidateTag("medicines-all", { expire: 0 });
@@ -137,9 +120,7 @@ export const getAllMedicines = async () => {
 			id: true,
 			name: true,
 			unit: true,
-			price: true,
 			description: true,
-			originalPrice: true,
 		},
 	});
 
