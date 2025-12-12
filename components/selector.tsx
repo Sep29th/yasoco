@@ -20,26 +20,7 @@ import { Input } from "./ui/input";
 import { FormControl, FormField, FormItem } from "./ui/form";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "@/app/admin/(manager)/examinations/examine/_schemas/form-schema";
-
-// --- Hook Debounce ---
-// Giúp trì hoãn việc cập nhật giá trị tìm kiếm cho đến khi người dùng ngừng gõ
-function useDebounce<T>(value: T, delay: number): T {
-	const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-	useEffect(() => {
-		const handler = setTimeout(() => {
-			setDebouncedValue(value);
-		}, delay);
-
-		return () => {
-			clearTimeout(handler);
-		};
-	}, [value, delay]);
-
-	return debouncedValue;
-}
-
-// --- Helper bỏ dấu tiếng Việt để tìm kiếm chính xác hơn ---
+import { useDebounce } from "@/lib/hooks/use-debounce";
 function removeAccents(str: string) {
 	return str
 		.normalize("NFD")
@@ -48,7 +29,6 @@ function removeAccents(str: string) {
 		.replace(/Đ/g, "D")
 		.toLowerCase();
 }
-
 type SelectorItem = {
 	id: string;
 	name: string;
@@ -67,7 +47,6 @@ type PropsType = {
 	disabled?: boolean;
 	needInput?: boolean;
 };
-
 export default function Selector({
 	options = [],
 	value,
@@ -80,24 +59,14 @@ export default function Selector({
 }: PropsType) {
 	const [open, setOpen] = useState(false);
 	const [internalItems, setInternalItems] = useState<SelectedItem[]>([]);
-
-	// State 1: Giá trị thực của ô input (cập nhật ngay lập tức để UI mượt)
 	const [inputValue, setInputValue] = useState("");
-
-	// State 2: Giá trị đã debounce (dùng để lọc danh sách sau 300ms)
 	const debouncedSearch = useDebounce(inputValue, 300);
-
 	const commandListRef = useRef<HTMLDivElement>(null);
-
 	const items = value || internalItems;
-
 	const setItems = (newItems: SelectedItem[]) => {
 		if (onChange) onChange(newItems);
 		else setInternalItems(newItems);
 	};
-
-	// Logic lọc danh sách thủ công dựa trên debouncedSearch
-	// Chúng ta tắt filter mặc định của shadcn để tự kiểm soát debounce
 	const filteredOptions = options.filter((option) => {
 		if (!debouncedSearch) return true;
 		const search = removeAccents(debouncedSearch);
@@ -105,21 +74,13 @@ export default function Selector({
 		const desc = option.description ? removeAccents(option.description) : "";
 		return name.includes(search) || desc.includes(search);
 	});
-
-	// Effect: Khi kết quả lọc thay đổi (sau khi debounce), cuộn lên đầu mượt mà
 	useEffect(() => {
 		if (commandListRef.current) {
-			commandListRef.current.scrollTo({
-				top: 0,
-				behavior: "smooth", // Kích hoạt cuộn mượt
-			});
+			commandListRef.current.scrollTo({ top: 0, behavior: "smooth" });
 		}
-	}, [debouncedSearch]); // Chỉ chạy khi giá trị debounce thay đổi
-
+	}, [debouncedSearch]);
 	const handleSelect = (option: SelectorItem) => {
 		setOpen(false);
-		// Không reset inputValue để giữ trải nghiệm người dùng, hoặc reset nếu muốn
-		// setInputValue("");
 		const exists = items.find((i) => i.id === option.id);
 		if (exists) {
 			updateQuantity(option.id, 1);
@@ -129,7 +90,6 @@ export default function Selector({
 			setItems([...items, newItem]);
 		}
 	};
-
 	const updateQuantity = (id: string, delta: number) => {
 		setItems(
 			items.map((item) =>
@@ -139,7 +99,6 @@ export default function Selector({
 			)
 		);
 	};
-
 	const updateNote = (id: string, newNote: string) => {
 		setItems(
 			items.map((item) =>
@@ -147,11 +106,9 @@ export default function Selector({
 			)
 		);
 	};
-
 	const removeItem = (id: string) => {
 		setItems(items.filter((item) => item.id !== id));
 	};
-
 	return (
 		<div className={cn("w-full space-y-2", disabled && "opacity-80")}>
 			<Popover open={open} onOpenChange={setOpen}>
@@ -174,7 +131,6 @@ export default function Selector({
 						className="w-(--radix-popover-trigger-width) p-0"
 						align="start"
 					>
-						{/* shouldFilter={false} là QUAN TRỌNG: Tắt bộ lọc mặc định của cmdk để dùng bộ lọc debounce của mình */}
 						<Command shouldFilter={false}>
 							<CommandInput
 								placeholder="Tìm kiếm..."
@@ -183,7 +139,7 @@ export default function Selector({
 							/>
 							<CommandList
 								ref={commandListRef}
-								className="max-h-[300px] overflow-y-auto scroll-smooth" // Thêm class scroll-smooth
+								className="max-h-[300px] overflow-y-auto scroll-smooth"
 							>
 								{filteredOptions.length === 0 ? (
 									<CommandEmpty>Không tìm thấy.</CommandEmpty>
@@ -192,7 +148,7 @@ export default function Selector({
 										{filteredOptions.map((option) => (
 											<CommandItem
 												key={option.id}
-												value={option.name} // Vẫn cần value cho accessibility
+												value={option.name}
 												onSelect={() => handleSelect(option)}
 												className="cursor-pointer"
 											>
@@ -228,8 +184,6 @@ export default function Selector({
 					</PopoverContent>
 				)}
 			</Popover>
-
-			{/* Phần hiển thị items đã chọn (giữ nguyên không đổi) */}
 			<div
 				className={cn(
 					"flex flex-col gap-2 border rounded-md p-2 bg-slate-50 overflow-y-auto custom-scrollbar",
