@@ -32,7 +32,7 @@ import { getPaginationExamination } from "@/lib/examination";
 import { AccessTokenPayload } from "@/lib/jwt";
 import { useEffect } from "react";
 import { getExaminationChannel } from "@/lib/pusher-client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DateString } from "@/utils/types/date-string";
 import {
 	Tooltip,
@@ -66,6 +66,13 @@ export default function ExaminationTable({
 	date,
 }: PropsType) {
 	const { refresh } = useRouter();
+	const searchParams = useSearchParams();
+
+	const buildPageHref = (newPage: number) => {
+		const params = new URLSearchParams(searchParams.toString());
+		params.set("page", String(newPage));
+		return `?${params.toString()}`;
+	};
 	useEffect(() => {
 		const channel = getExaminationChannel();
 		const handleUpdateEvent = (data: { id: string; date?: Date }) => {
@@ -241,7 +248,7 @@ export default function ExaminationTable({
 					<PaginationContent>
 						<PaginationItem>
 							<PaginationPrevious
-								href={`?page=${Math.max(1, page - 1)}`}
+								href={buildPageHref(Math.max(1, page - 1))}
 								className={
 									page <= 1
 										? "opacity-50 pointer-events-none cursor-not-allowed"
@@ -256,7 +263,7 @@ export default function ExaminationTable({
 						</PaginationItem>
 						<PaginationItem>
 							<PaginationNext
-								href={`?page=${Math.min(totalPages, page + 1)}`}
+								href={buildPageHref(Math.min(totalPages, page + 1))}
 								className={
 									page >= totalPages
 										? "opacity-50 pointer-events-none cursor-not-allowed"
