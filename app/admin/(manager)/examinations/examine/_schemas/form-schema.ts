@@ -6,7 +6,9 @@ import {
 	selectedServiceSchema,
 } from "./selected-item-schema";
 import { discountSchema } from "@/app/admin/(manager)/examinations/examine/_schemas/discount-schema";
-export const createFormSchema = (mode: "receive" | "examine" | "pay") => {
+export const createFormSchema = (
+	mode: "receive" | "examine" | "pay" | "edit"
+) => {
 	return z
 		.object({
 			parentName: z.string(),

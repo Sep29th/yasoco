@@ -34,6 +34,12 @@ import { useEffect } from "react";
 import { getExaminationChannel } from "@/lib/pusher-client";
 import { useRouter } from "next/navigation";
 import { DateString } from "@/utils/types/date-string";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Edit3 } from "lucide-react";
 const renderModifyTitle = (status: ExaminationStatus) => {
 	if (status == "BOOKED") return "Tiếp nhận";
 	else if (status == "WAITING" || status == "IN_PROGRESS") return "Khám";
@@ -115,6 +121,31 @@ export default function ExaminationTable({
 									<ExaminationDetailModalButton
 										examinationId={examination.id}
 									/>
+									{auth.permissions.includes("examination:update") &&
+										(examination.status === "COMPLETED" ||
+											examination.status === "CANCELLED") && (
+											<Link
+												href={`/admin/examinations/examine?returnTo=${encodeURIComponent(
+													returnTo
+												)}&examinationId=${examination.id}`}
+												className="no-underline"
+											>
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<Button
+															className="cursor-pointer"
+															variant="outline"
+															size="icon-sm"
+														>
+															<Edit3 className="size-4" />
+														</Button>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>Chỉnh sửa</p>
+													</TooltipContent>
+												</Tooltip>
+											</Link>
+										)}
 									{auth.permissions.includes("examination:create") &&
 										(examination.status === "COMPLETED" ||
 											examination.status === "CANCELLED") && (
@@ -124,10 +155,7 @@ export default function ExaminationTable({
 												)}&examinationId=${examination.id}&isReReceive=true`}
 												className="no-underline"
 											>
-												<Button
-													variant="outline"
-													size="sm"
-												>
+												<Button variant="outline" size="sm">
 													Tiếp nhận lại
 												</Button>
 											</Link>

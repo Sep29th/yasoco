@@ -16,12 +16,15 @@ type PropsType = { searchParams: Promise<ExamineParams> };
 const renderTitle = (status: ExaminationStatus | undefined) => {
 	if (status == "PENDING_PAYMENT") return "Thanh toán";
 	else if (status == "IN_PROGRESS" || status == "WAITING") return "Khám";
+	else if (status == "CANCELLED" || status == "COMPLETED") return "Chỉnh sửa";
 	else return "Tiếp nhận";
 };
 const renderDescription = (status: ExaminationStatus | undefined) => {
 	if (status == "PENDING_PAYMENT") return "Thanh toán cho lịch khám";
 	else if (status == "IN_PROGRESS" || status == "WAITING")
 		return "Tiến hành khám và điền đầy đủ thông tin ca khám";
+	else if (status == "CANCELLED" || status == "COMPLETED")
+		return "Chỉnh sửa lại thông tin của bệnh nhân";
 	else if (!status)
 		return "Thiết lập thông tin cho bệnh nhân không có lịch trước";
 	return "Thiết lập thông tin cho bệnh nhân";

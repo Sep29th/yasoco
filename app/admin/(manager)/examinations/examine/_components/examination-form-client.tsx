@@ -52,6 +52,7 @@ import payAction from "../_actions/pay";
 import cancelExamination from "../../_actions/cancel";
 import updateStatus from "../_actions/update-status";
 import LivePrintInvoiceButton from "@/app/admin/(manager)/examinations/examine/_components/live-print-invoice-button";
+import updateAction from "../_actions/update";
 
 type PropsType = {
 	initialFormValue: Partial<
@@ -137,6 +138,16 @@ export default function ExaminationFormClient({
 					note: false,
 					discounts: false,
 				};
+			case "edit":
+				return {
+					basicInfo: false,
+					symptoms: true,
+					diagnose: true,
+					services: true,
+					medicines: true,
+					note: true,
+					discounts: true,
+				};
 			default:
 				return {
 					basicInfo: true,
@@ -183,6 +194,12 @@ export default function ExaminationFormClient({
 				);
 			else if (mode === "examine")
 				await examineAction(
+					JSON.parse(JSON.stringify(values)),
+					returnTo,
+					initialFormValue?.id || ""
+				);
+			else if (mode === "edit")
+				await updateAction(
 					JSON.parse(JSON.stringify(values)),
 					returnTo,
 					initialFormValue?.id || ""
@@ -570,7 +587,7 @@ export default function ExaminationFormClient({
 	);
 }
 
-const renderSubmitText = (mode: "receive" | "examine" | "pay") => {
+const renderSubmitText = (mode: "receive" | "examine" | "pay" | "edit") => {
 	switch (mode) {
 		case "receive":
 			return "Hoàn thành tiếp nhận";
@@ -578,6 +595,8 @@ const renderSubmitText = (mode: "receive" | "examine" | "pay") => {
 			return "Lưu kết quả khám";
 		case "pay":
 			return "Xác nhận & Thanh toán";
+		case "edit":
+			return "Lưu thông tin";
 		default:
 			return "Lưu";
 	}
@@ -614,7 +633,7 @@ type SubmitPartProps = {
 		discounts: boolean;
 	};
 	isSubmitting: boolean;
-	mode: "receive" | "examine" | "pay";
+	mode: "receive" | "examine" | "pay" | "edit";
 	returnTo: string;
 	form: UseFormReturn<FormValues, unknown, FormValues>;
 	needToBackStatusRef: RefObject<boolean>;
@@ -832,7 +851,7 @@ const SubmitPart = ({
 					</span>
 				</div>
 				<div className="flex flex-col gap-3">
-					{initialFormValue.status !== "COMPLETED" &&
+					{/* {initialFormValue.status !== "COMPLETED" &&
 						initialFormValue.status !== "CANCELLED" && (
 							<Button
 								type="submit"
@@ -849,7 +868,22 @@ const SubmitPart = ({
 									renderSubmitText(mode)
 								)}
 							</Button>
+						)} */}
+					<Button
+						type="submit"
+						size="lg"
+						disabled={isSubmitting}
+						className="w-full bg-[#A6CF52] hover:bg-[#93b848] text-white font-bold text-md shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{isSubmitting || isBacking ? (
+							<>
+								<span className="mr-2">Đang xử lý...</span>
+								<Spinner />
+							</>
+						) : (
+							renderSubmitText(mode)
 						)}
+					</Button>
 					<div className="grid grid-cols-1 gap-3">
 						{(initialFormValue.status === "COMPLETED" ||
 							initialFormValue.status === "PENDING_PAYMENT" ||
