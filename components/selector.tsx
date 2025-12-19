@@ -21,6 +21,7 @@ import { FormControl, FormField, FormItem } from "./ui/form";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "@/app/admin/(manager)/examinations/examine/_schemas/form-schema";
 import { useDebounce } from "@/lib/hooks/use-debounce";
+
 function removeAccents(str: string) {
 	return str
 		.normalize("NFD")
@@ -29,6 +30,7 @@ function removeAccents(str: string) {
 		.replace(/Đ/g, "D")
 		.toLowerCase();
 }
+
 type SelectorItem = {
 	id: string;
 	name: string;
@@ -36,7 +38,9 @@ type SelectorItem = {
 	unit?: string;
 	description?: string;
 };
+
 type SelectedItem = SelectorItem & { quantity: number; dosage?: string };
+
 type PropsType = {
 	options: SelectorItem[];
 	name: "services" | "medicines";
@@ -47,6 +51,7 @@ type PropsType = {
 	disabled?: boolean;
 	needInput?: boolean;
 };
+
 export default function Selector({
 	options = [],
 	value,
@@ -60,13 +65,18 @@ export default function Selector({
 	const [open, setOpen] = useState(false);
 	const [internalItems, setInternalItems] = useState<SelectedItem[]>([]);
 	const [inputValue, setInputValue] = useState("");
+	const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>(
+		{}
+	);
 	const debouncedSearch = useDebounce(inputValue, 300);
 	const commandListRef = useRef<HTMLDivElement>(null);
+
 	const items = value || internalItems;
 	const setItems = (newItems: SelectedItem[]) => {
 		if (onChange) onChange(newItems);
 		else setInternalItems(newItems);
 	};
+
 	const filteredOptions = options.filter((option) => {
 		if (!debouncedSearch) return true;
 		const search = removeAccents(debouncedSearch);
@@ -74,11 +84,13 @@ export default function Selector({
 		const desc = option.description ? removeAccents(option.description) : "";
 		return name.includes(search) || desc.includes(search);
 	});
+
 	useEffect(() => {
 		if (commandListRef.current) {
 			commandListRef.current.scrollTo({ top: 0, behavior: "smooth" });
 		}
 	}, [debouncedSearch]);
+
 	const handleSelect = (option: SelectorItem) => {
 		setOpen(false);
 		const exists = items.find((i) => i.id === option.id);
@@ -88,17 +100,48 @@ export default function Selector({
 			const newItem: SelectedItem = { ...option, quantity: 1 };
 			if (name === "medicines") newItem.dosage = "";
 			setItems([...items, newItem]);
+			setQuantityInputs((prev) => ({ ...prev, [option.id]: "1" }));
 		}
 	};
+
 	const updateQuantity = (id: string, delta: number) => {
 		setItems(
-			items.map((item) =>
-				item.id === id
-					? { ...item, quantity: Math.max(1, item.quantity + delta) }
-					: item
-			)
+			items.map((item) => {
+				if (item.id === id) {
+					const newQuantity = Math.max(1, item.quantity + delta);
+					setQuantityInputs((prev) => ({ ...prev, [id]: String(newQuantity) }));
+					return { ...item, quantity: newQuantity };
+				}
+				return item;
+			})
 		);
 	};
+
+	const handleQuantityInputChange = (id: string, value: string) => {
+		if (value === "" || /^\d+$/.test(value)) {
+			setQuantityInputs((prev) => ({ ...prev, [id]: value }));
+		}
+	};
+
+	const handleQuantityInputBlur = (id: string) => {
+		const inputVal = quantityInputs[id] || "";
+		const numValue = parseInt(inputVal, 10);
+
+		if (!inputVal || isNaN(numValue) || numValue < 1) {
+			setItems(
+				items.map((item) => (item.id === id ? { ...item, quantity: 1 } : item))
+			);
+			setQuantityInputs((prev) => ({ ...prev, [id]: "1" }));
+		} else {
+			setItems(
+				items.map((item) =>
+					item.id === id ? { ...item, quantity: numValue } : item
+				)
+			);
+			setQuantityInputs((prev) => ({ ...prev, [id]: String(numValue) }));
+		}
+	};
+
 	const updateNote = (id: string, newNote: string) => {
 		setItems(
 			items.map((item) =>
@@ -106,9 +149,16 @@ export default function Selector({
 			)
 		);
 	};
+
 	const removeItem = (id: string) => {
 		setItems(items.filter((item) => item.id !== id));
+		setQuantityInputs((prev) => {
+			const newInputs = { ...prev };
+			delete newInputs[id];
+			return newInputs;
+		});
 	};
+
 	return (
 		<div className={cn("w-full space-y-2", disabled && "opacity-80")}>
 			<Popover open={open} onOpenChange={setOpen}>
@@ -269,9 +319,17 @@ export default function Selector({
 								>
 									<Minus className="h-3 w-3" />
 								</button>
-								<span className="px-2 font-semibold text-xs min-w-[29px] text-center text-slate-700">
-									{item.quantity}
-								</span>
+								<Input
+									type="text"
+									inputMode="numeric"
+									value={quantityInputs[item.id] ?? String(item.quantity)}
+									onChange={(e) =>
+										handleQuantityInputChange(item.id, e.target.value)
+									}
+									onBlur={() => handleQuantityInputBlur(item.id)}
+									disabled={disabled}
+									className="h-7 w-12 px-1 text-center font-semibold text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+								/>
 								<button
 									type="button"
 									onClick={() => updateQuantity(item.id, 1)}

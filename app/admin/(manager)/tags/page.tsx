@@ -39,15 +39,15 @@ const formatDateTime = (value: Date | string) =>
 		timeStyle: "short",
 	}).format(new Date(value));
 const validateSearchParams = (params: Partial<SearchParams>) => {
-	const value = { page: 0 };
-	if (!params.page) {
-		value.page = 1;
-	} else {
+	const value = { page: 1 };
+	if (params.page) {
 		const trimmed = params.page.trim();
 		const numbered = Number(trimmed);
 		if (!isNaN(numbered) && trimmed !== "") {
 			value.page = numbered;
-		} else value.page = 1;
+		} else {
+			value.page = 1;
+		}
 	}
 	return value;
 };

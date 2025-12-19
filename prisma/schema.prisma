@@ -5,8 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../lib/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 generator json {
@@ -14,9 +15,10 @@ generator json {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [pg_trgm, unaccent]
 }
 
 model User {
@@ -181,12 +183,16 @@ model Examination {
 }
 
 model Medicine {
-  id            String   @id @default(uuid())
-  name          String
-  description   String?
-  unit          String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String                   @id @default(uuid())
+  name        String
+  description String?
+  unit        String
+  searchTsv   Unsupported("tsvector")?
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  @@index([createdAt])
+  @@index([searchTsv], type: Gin, name: "Medicine_search_tsv_idx")
 }
 
 model Service {
@@ -196,6 +202,8 @@ model Service {
   price       Float
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([createdAt])
 }
 
 model ExaminationFee {
@@ -220,8 +228,8 @@ model Article {
   coverImage     String?
   /// [EditorContentType]
   content        Json?
-  contentText    String?
   searchVector   Unsupported("tsvector")?
+  contentText    String?
   authorId       String
   showInMainPage Boolean                  @default(false)
   isPublished    Boolean                  @default(false)
@@ -234,6 +242,7 @@ model Article {
   @@index([isPublished, showInMainPage])
   @@index([publishedAt])
   @@index([authorId])
+  @@index([searchVector], type: Gin, name: "Article_search_vector_idx")
 }
 
 model ArticleTag {
@@ -259,6 +268,8 @@ model Tag {
   updatedAt DateTime @updatedAt
 
   articleTags ArticleTag[]
+
+  @@index([createdAt])
 }
 
 model InvoiceTemplate {
@@ -269,11 +280,11 @@ model InvoiceTemplate {
 }
 
 model Invoice {
-  id                    String   @id @default(uuid())
-  examinationFee        Int      @default(0)
-  serviceFee            Int      @default(0)
-  totalDiscount         Int      @default(0)
-  createdAt             DateTime @default(now())
+  id             String   @id @default(uuid())
+  examinationFee Int      @default(0)
+  serviceFee     Int      @default(0)
+  totalDiscount  Int      @default(0)
+  createdAt      DateTime @default(now())
 
   @@index([createdAt])
 }

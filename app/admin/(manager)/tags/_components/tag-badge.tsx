@@ -1,4 +1,4 @@
-import { getContrastYIQ } from "../_utils/contrast-yiq";
+import { getContrastYIQ } from "@/utils/contrast-yiq";
 
 type PropsType = {
 	content: React.ReactNode;

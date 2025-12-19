@@ -37,3 +37,7 @@ export async function updateTag(data: Pick<Tag, "name" | "color" | "id">) {
 export async function deleteTag(id: string) {
 	return (await prisma.tag.deleteMany({ where: { id } })).count;
 }
+
+export async function getAllTags() {
+	return await prisma.tag.findMany({ select: { id: true, name: true, color: true } });
+}

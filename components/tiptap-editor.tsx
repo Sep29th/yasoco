@@ -80,7 +80,7 @@ const TiptapEditor: React.FC<PropsType> = ({
 				} ${disabled ? "text-gray-500 cursor-not-allowed bg-gray-50" : ""}`,
 			},
 		},
-		onUpdate: ({ editor }) => {
+		onBlur: ({ editor }) => {
 			if (!isUpdatingRef.current) {
 				const json = editor.getJSON();
 				contentRef.current = json;

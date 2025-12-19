@@ -2,6 +2,7 @@
 
 import { requireAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { revalidateTag } from 'next/cache';
 
 type ImportRow = {
 	name: string;
@@ -103,6 +104,8 @@ export async function importMedicinesFromExcelAction(payload: {
 			});
 		}
 	});
+
+	revalidateTag("medicines-all", { expire: 0 });
 
 	return { ok: true, count: normalizedRows.length };
 }

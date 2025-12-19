@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { JSONContent } from "@tiptap/react";
 import { revalidateTag } from "next/cache";
@@ -9,6 +10,11 @@ export default async function updateInvoiceTemplate(
 	name: string,
 	value: JSONContent
 ) {
+	const auth = await requireAuth();
+
+	if (!auth.permissions.includes("invoice-template:update")) {
+		throw new Error("Không có quyền sửa mẫu đơn");
+	}
 	try {
 		const result = await prisma.$transaction(async (tx) => {
 			const existed = await tx.invoiceTemplate.findFirst({

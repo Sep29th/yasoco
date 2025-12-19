@@ -11,11 +11,9 @@ import {
 } from "react";
 import { useForm, UseFormReturn, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import Selector from "@/components/selector";
 import TiptapEditor from "@/components/tiptap-editor";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
 	Form,
 	FormControl,
@@ -38,8 +36,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Examination, Medicine, Service } from "@/lib/generated/prisma";
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Ban } from "lucide-react";
+import { Ban } from "lucide-react";
 import ExaminationTypeBadge from "../../_components/examination-type-badge";
 import ExaminationStatusBadge from "../../_components/examination-status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +50,7 @@ import cancelExamination from "../../_actions/cancel";
 import updateStatus from "../_actions/update-status";
 import LivePrintInvoiceButton from "@/app/admin/(manager)/examinations/examine/_components/live-print-invoice-button";
 import updateAction from "../_actions/update";
+import { SmartDatePicker } from "./smart-date-picker";
 
 type PropsType = {
 	initialFormValue: Partial<
@@ -359,38 +357,14 @@ export default function ExaminationFormClient({
 										<FormLabel>
 											Ngày sinh <span className="text-red-500">*</span>
 										</FormLabel>
-										<Popover>
-											<PopoverTrigger asChild disabled={isDisabled.basicInfo}>
-												<FormControl>
-													<Button
-														variant={"outline"}
-														className={cn(
-															"w-full pl-3 text-left font-normal",
-															!field.value && "text-muted-foreground"
-														)}
-													>
-														{field.value ? (
-															format(field.value, "dd/MM/yyyy")
-														) : (
-															<span>Chọn ngày sinh</span>
-														)}
-														<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-													</Button>
-												</FormControl>
-											</PopoverTrigger>
-											<PopoverContent className="w-auto p-0" align="start">
-												<Calendar
-													mode="single"
-													selected={field.value}
-													onSelect={field.onChange}
-													disabled={(date) =>
-														date > new Date() || date < new Date("1900-01-01")
-													}
-													autoFocus
-													captionLayout="dropdown"
-												/>
-											</PopoverContent>
-										</Popover>
+										<FormControl>
+											<SmartDatePicker
+												value={field.value}
+												onChange={field.onChange}
+												disabled={isDisabled.basicInfo}
+												placeholder="DD/MM/YYYY"
+											/>
+										</FormControl>
 										<FormMessage className="font-light leading-none" />
 									</FormItem>
 								)}
@@ -434,6 +408,9 @@ export default function ExaminationFormClient({
 											<TiptapEditor
 												content={field.value}
 												onChange={field.onChange}
+												className="h-[279px]"
+												editorClassname="h-[240px]"
+												canUploadImage
 											/>
 										</FormControl>
 										<FormMessage className="font-light leading-none" />
@@ -851,24 +828,6 @@ const SubmitPart = ({
 					</span>
 				</div>
 				<div className="flex flex-col gap-3">
-					{/* {initialFormValue.status !== "COMPLETED" &&
-						initialFormValue.status !== "CANCELLED" && (
-							<Button
-								type="submit"
-								size="lg"
-								disabled={isSubmitting}
-								className="w-full bg-[#A6CF52] hover:bg-[#93b848] text-white font-bold text-md shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-							>
-								{isSubmitting || isBacking ? (
-									<>
-										<span className="mr-2">Đang xử lý...</span>
-										<Spinner />
-									</>
-								) : (
-									renderSubmitText(mode)
-								)}
-							</Button>
-						)} */}
 					<Button
 						type="submit"
 						size="lg"

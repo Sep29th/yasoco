@@ -140,7 +140,7 @@ export default function TagForm({ mode, initialValues, tagId }: PropsType) {
 								? "Đang tạo..."
 								: "Đang cập nhật..."
 							: mode === "create"
-							? "Tạo thẻ"
+							? "Tạo chủ đề"
 							: "Cập nhật"}
 					</Button>
 					<Button

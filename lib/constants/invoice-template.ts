@@ -9,6 +9,7 @@ import { ImageResize } from "tiptap-extension-resize-image";
 import { TableKit } from "@tiptap/extension-table";
 import Heading from "@tiptap/extension-heading";
 import { Noto_Serif } from "next/font/google";
+import { Extension } from "@tiptap/react";
 
 export const printFont = Noto_Serif({
 	subsets: ["vietnamese", "latin"],
@@ -169,6 +170,17 @@ export const exampleInvoiceTemplateData: ExaminationDataNeededForInvoiceTemplate
 		],
 	};
 
+const TabIndentExtension = Extension.create({
+	name: "tabIndent",
+	addKeyboardShortcuts() {
+		return {
+			Tab: () => {
+				return this.editor.commands.insertContent("\t");
+			},
+		};
+	},
+});
+
 export const invoiceTemplateTipTapExtensions = [
 	Document,
 	Paragraph,
@@ -188,6 +200,7 @@ export const invoiceTemplateTipTapExtensions = [
 	Heading.configure({
 		levels: [1, 2, 3, 4, 5, 6],
 	}),
+	TabIndentExtension,
 ];
 
 export const pageStyle = `
