@@ -9,11 +9,11 @@ import {
 	useState,
 	useTransition,
 } from "react";
-import { useForm, UseFormReturn, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import {useForm, UseFormReturn, useWatch} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
 import Selector from "@/components/selector";
 import TiptapEditor from "@/components/tiptap-editor";
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {
 	Form,
 	FormControl,
@@ -22,7 +22,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {Input} from "@/components/ui/input";
 import {
 	Popover,
 	PopoverContent,
@@ -35,22 +35,23 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Examination, Medicine, Service } from "@/lib/generated/prisma";
-import { Ban } from "lucide-react";
+import {Examination, Medicine, Service} from "@/lib/generated/prisma";
+import {Ban} from "lucide-react";
 import ExaminationTypeBadge from "../../_components/examination-type-badge";
 import ExaminationStatusBadge from "../../_components/examination-status-badge";
-import { Badge } from "@/components/ui/badge";
-import { getModeFromStatus } from "../_utils/get-mode-from-status";
-import { createFormSchema, FormValues } from "../_schemas/form-schema";
+import {Badge} from "@/components/ui/badge";
+import {getModeFromStatus} from "../_utils/get-mode-from-status";
+import {createFormSchema, FormValues} from "../_schemas/form-schema";
 import receiveAction from "../_actions/receive";
-import { Spinner } from "@/components/ui/spinner";
+import {Spinner} from "@/components/ui/spinner";
 import examineAction from "../_actions/examine";
 import payAction from "../_actions/pay";
 import cancelExamination from "../../_actions/cancel";
 import updateStatus from "../_actions/update-status";
 import LivePrintInvoiceButton from "@/app/admin/(manager)/examinations/examine/_components/live-print-invoice-button";
 import updateAction from "../_actions/update";
-import { SmartDatePicker } from "./smart-date-picker";
+import {SmartDatePicker} from "./smart-date-picker";
+import {getAgeDisplay} from "@/utils/get-age-display";
 
 type PropsType = {
 	initialFormValue: Partial<
@@ -76,10 +77,10 @@ type PropsType = {
 	returnTo: string;
 };
 export default function ExaminationFormClient({
-	initialFormValue,
-	data,
-	returnTo,
-}: PropsType) {
+																								initialFormValue,
+																								data,
+																								returnTo,
+																							}: PropsType) {
 	const needToBackStatusRef = useRef(true);
 	const mode = useMemo(
 		() => getModeFromStatus(initialFormValue.status),
@@ -90,6 +91,7 @@ export default function ExaminationFormClient({
 		resolver: zodResolver(schema),
 		defaultValues: {
 			parentName: initialFormValue.parentName || "",
+			address: initialFormValue.address || "",
 			parentPhone: initialFormValue.parentPhone || "",
 			kidName: initialFormValue.kidName || "",
 			kidGender: initialFormValue.kidGender === false ? "female" : "male",
@@ -237,7 +239,7 @@ export default function ExaminationFormClient({
 								</span>
 								<div className="min-h-6">
 									{initialFormValue.status ? (
-										<ExaminationStatusBadge status={initialFormValue.status} />
+										<ExaminationStatusBadge status={initialFormValue.status}/>
 									) : (
 										<Badge variant="outline" className="text-gray-500">
 											Mới tạo
@@ -259,7 +261,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="parentName"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>Tên phụ huynh</FormLabel>
 											<FormControl>
@@ -269,7 +271,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.basicInfo}
 												/>
 											</FormControl>
-											<FormMessage className="font-light leading-none" />
+											<FormMessage className="font-light leading-none"/>
 										</FormItem>
 									)}
 								/>
@@ -278,7 +280,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="parentPhone"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>
 												SĐT <span className="text-red-500">*</span>
@@ -290,18 +292,33 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.basicInfo}
 												/>
 											</FormControl>
-											<FormMessage className="font-light leading-none" />
+											<FormMessage className="font-light leading-none"/>
 										</FormItem>
 									)}
 								/>
 							</div>
+						</div>
+						<div className="space-y-2">
+							<FormField
+								control={form.control}
+								name="address"
+								render={({field}) => (
+									<FormItem>
+										<FormLabel>Địa chỉ</FormLabel>
+										<FormControl>
+											<Input {...field} placeholder={"Ví dụ: Tòa XX.XX, Ocean Park,..."} disabled={isDisabled.basicInfo}/>
+										</FormControl>
+										<FormMessage className="font-light leading-none"/>
+									</FormItem>
+								)}
+							/>
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-10 gap-2">
 							<div className="md:col-span-7">
 								<FormField
 									control={form.control}
 									name="kidName"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>
 												Tên bé <span className="text-red-500">*</span>
@@ -313,7 +330,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.basicInfo}
 												/>
 											</FormControl>
-											<FormMessage className="font-light leading-none" />
+											<FormMessage className="font-light leading-none"/>
 										</FormItem>
 									)}
 								/>
@@ -322,7 +339,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="kidGender"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>
 												Giới tính <span className="text-red-500">*</span>
@@ -334,7 +351,7 @@ export default function ExaminationFormClient({
 											>
 												<FormControl>
 													<SelectTrigger className="w-full">
-														<SelectValue placeholder="Chọn giới tính" />
+														<SelectValue placeholder="Chọn giới tính"/>
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
@@ -342,7 +359,7 @@ export default function ExaminationFormClient({
 													<SelectItem value="female">Nữ</SelectItem>
 												</SelectContent>
 											</Select>
-											<FormMessage className="font-light leading-none" />
+											<FormMessage className="font-light leading-none"/>
 										</FormItem>
 									)}
 								/>
@@ -352,11 +369,18 @@ export default function ExaminationFormClient({
 							<FormField
 								control={form.control}
 								name="kidBirthDate"
-								render={({ field }) => (
+								render={({field}) => (
 									<FormItem className="flex flex-col">
-										<FormLabel>
-											Ngày sinh <span className="text-red-500">*</span>
-										</FormLabel>
+										<div className="flex items-center justify-between">
+											<FormLabel>
+												Ngày sinh <span className="text-red-500">*</span>
+											</FormLabel>
+											{field.value && (
+												<span className="ml-2 font-normal text-muted-foreground text-sm leading-0">
+													{getAgeDisplay(field.value)}
+												</span>
+											)}
+										</div>
 										<FormControl>
 											<SmartDatePicker
 												value={field.value}
@@ -365,14 +389,14 @@ export default function ExaminationFormClient({
 												placeholder="DD/MM/YYYY"
 											/>
 										</FormControl>
-										<FormMessage className="font-light leading-none" />
+										<FormMessage className="font-light leading-none"/>
 									</FormItem>
 								)}
 							/>
 							<FormField
 								control={form.control}
 								name="kidWeight"
-								render={({ field }) => (
+								render={({field}) => (
 									<FormItem>
 										<FormLabel>
 											Cân nặng (kg) <span className="text-red-500">*</span>
@@ -392,7 +416,7 @@ export default function ExaminationFormClient({
 												}}
 											/>
 										</FormControl>
-										<FormMessage className="font-light leading-none" />
+										<FormMessage className="font-light leading-none"/>
 									</FormItem>
 								)}
 							/>
@@ -401,7 +425,7 @@ export default function ExaminationFormClient({
 							<FormField
 								control={form.control}
 								name="medicalHistory"
-								render={({ field }) => (
+								render={({field}) => (
 									<FormItem>
 										<FormLabel>Tiền sử bệnh</FormLabel>
 										<FormControl>
@@ -413,7 +437,7 @@ export default function ExaminationFormClient({
 												canUploadImage
 											/>
 										</FormControl>
-										<FormMessage className="font-light leading-none" />
+										<FormMessage className="font-light leading-none"/>
 									</FormItem>
 								)}
 							/>
@@ -430,7 +454,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="symptoms"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>Triệu chứng</FormLabel>
 											<FormControl>
@@ -440,7 +464,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.symptoms}
 												/>
 											</FormControl>
-											<FormMessage className="font-light leading-none" />
+											<FormMessage className="font-light leading-none"/>
 										</FormItem>
 									)}
 								/>
@@ -449,7 +473,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="note"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>Ghi chú</FormLabel>
 											<FormControl>
@@ -459,7 +483,7 @@ export default function ExaminationFormClient({
 													disabled={isDisabled.note}
 												/>
 											</FormControl>
-											<FormMessage className="font-light leading-none" />
+											<FormMessage className="font-light leading-none"/>
 										</FormItem>
 									)}
 								/>
@@ -468,7 +492,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="diagnose"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<div className="flex items-center justify-between">
 												<FormLabel>
@@ -477,7 +501,7 @@ export default function ExaminationFormClient({
 														<span className="text-red-500">*</span>
 													)}
 												</FormLabel>
-												<FormMessage className="font-light leading-none" />
+												<FormMessage className="font-light leading-none"/>
 											</div>
 											<FormControl>
 												<TiptapEditor
@@ -497,7 +521,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="services"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>Dịch vụ chỉ định</FormLabel>
 											<FormControl>
@@ -511,7 +535,7 @@ export default function ExaminationFormClient({
 													name="services"
 												/>
 											</FormControl>
-											<FormMessage className="font-light leading-none" />
+											<FormMessage className="font-light leading-none"/>
 										</FormItem>
 									)}
 								/>
@@ -520,7 +544,7 @@ export default function ExaminationFormClient({
 								<FormField
 									control={form.control}
 									name="medicines"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>Thuốc kê đơn</FormLabel>
 											<FormControl>
@@ -533,6 +557,14 @@ export default function ExaminationFormClient({
 													needInput
 													form={form}
 													name="medicines"
+													suggestions={[
+														"Sáng 1 gói, tối 1 gói sau ăn",
+														"Sáng 1 viên, tối 1 viên sau ăn",
+														"Sáng 2 viên, tối 2 viên sau ăn",
+														"Xịt mũi ngày 3 lần",
+														"Sáng 5ml, tối 5ml sau ăn",
+														"Uống 1 gói khi sốt trên 38,5 độ"
+													]}
 												/>
 											</FormControl>
 										</FormItem>
@@ -617,15 +649,15 @@ type SubmitPartProps = {
 };
 
 const SubmitPart = ({
-	initialFormValue,
-	data,
-	form,
-	isSubmitting,
-	mode,
-	isDisabled,
-	returnTo,
-	needToBackStatusRef,
-}: SubmitPartProps) => {
+											initialFormValue,
+											data,
+											form,
+											isSubmitting,
+											mode,
+											isDisabled,
+											returnTo,
+											needToBackStatusRef,
+										}: SubmitPartProps) => {
 	const [isCancelling, startTransition] = useTransition();
 	const [isBacking, startBackingTransition] = useTransition();
 	const handleCancel = () => {
@@ -737,7 +769,7 @@ const SubmitPart = ({
 									<FormField
 										control={form.control}
 										name={`discounts.${index}.value`}
-										render={({ field }) => (
+										render={({field}) => (
 											<FormItem className="col-span-2">
 												<FormControl>
 													<Input
@@ -756,7 +788,7 @@ const SubmitPart = ({
 									<FormField
 										control={form.control}
 										name={`discounts.${index}.type`}
-										render={({ field }) => (
+										render={({field}) => (
 											<FormItem>
 												<Select
 													onValueChange={field.onChange}
@@ -765,7 +797,7 @@ const SubmitPart = ({
 												>
 													<FormControl>
 														<SelectTrigger className="cursor-pointer">
-															<SelectValue placeholder="Loại" />
+															<SelectValue placeholder="Loại"/>
 														</SelectTrigger>
 													</FormControl>
 													<SelectContent>
@@ -787,7 +819,7 @@ const SubmitPart = ({
 								<FormField
 									control={form.control}
 									name={`discounts.${index}.description`}
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormControl>
 												<Input
@@ -810,7 +842,7 @@ const SubmitPart = ({
 								onClick={() =>
 									form.setValue("discounts", [
 										...discounts,
-										{ value: 0, type: "fix", description: "" },
+										{value: 0, type: "fix", description: ""},
 									])
 								}
 							>
@@ -837,7 +869,7 @@ const SubmitPart = ({
 						{isSubmitting || isBacking ? (
 							<>
 								<span className="mr-2">Đang xử lý...</span>
-								<Spinner />
+								<Spinner/>
 							</>
 						) : (
 							renderSubmitText(mode)
@@ -863,7 +895,7 @@ const SubmitPart = ({
 											variant="outline"
 											className="w-full border-red-200 text-red-600 bg-red-50 hover:bg-red-100"
 										>
-											<Ban className="mr-2 h-4 w-4" /> Hủy ca khám
+											<Ban className="mr-2 h-4 w-4"/> Hủy ca khám
 										</Button>
 									</PopoverTrigger>
 									<PopoverContent className="w-[260px]" side="top">
@@ -879,7 +911,7 @@ const SubmitPart = ({
 												disabled={isCancelling}
 											>
 												{isCancelling ? (
-													<Spinner className="w-4 h-4" />
+													<Spinner className="w-4 h-4"/>
 												) : (
 													"Xác nhận"
 												)}

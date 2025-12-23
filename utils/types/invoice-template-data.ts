@@ -2,6 +2,7 @@ import { ExaminationDataNeededForInvoiceTemplateType } from "@/utils/types/exami
 
 export type InvoiceTemplateDataType =
 	ExaminationDataNeededForInvoiceTemplateType & {
+		kidAge: string;
 		serviceTotal: number;
 		discountTotal: number;
 		finalTotal: number;

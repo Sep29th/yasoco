@@ -269,6 +269,14 @@ export default function ExaminationDetailModalButton({
 											</div>
 											<div className="space-y-1">
 												<span className="text-xs text-muted-foreground">
+													Địa chỉ
+												</span>
+												<p className="text-sm">
+													{examination.address}
+												</p>
+											</div>
+											<div className="space-y-1">
+												<span className="text-xs text-muted-foreground">
 													Tên bé
 												</span>
 												<p className="text-sm font-medium">

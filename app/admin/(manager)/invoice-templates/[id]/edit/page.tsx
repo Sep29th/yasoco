@@ -39,7 +39,7 @@ export default async function EditInvoiceTemplatePage({params}: PropsType) {
 				</Link>
 			</header>
 			<InvoiceTemplateFormClient
-				initialValues={{name: invoiceTemplate.name, value: invoiceTemplate.value}}
+				initialValues={{name: invoiceTemplate.name, value: invoiceTemplate.value, backgroundImage: invoiceTemplate.backgroundImage}}
 				invoiceTemplateId={invoiceTemplate.id}
 			/>
 		</div>

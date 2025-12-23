@@ -48,12 +48,14 @@ export function renderHtmlApplyDataToTiptapJsonContent(
 
 	const commonParams: Record<string, string> = {
 		"{{ma_kham}}": escapeHtml(data.id),
+		"{{dia_chi}}": escapeHtml(data.address),
 		"{{ten_phu_huynh}}": escapeHtml(data.parentName),
 		"{{sdt_phu_huynh}}": escapeHtml(data.parentPhone),
 		"{{ten_be}}": escapeHtml(data.kidName),
 		"{{ngay_sinh_be}}": escapeHtml(
 			getDateVnTimezone(new Date(data.kidBirthDate))
 		),
+		"{{tuoi_be}}": escapeHtml(data.kidAge),
 		"{{gioi_tinh_be}}": data.kidGender ? "Nam" : "Nữ",
 		"{{can_nang_be}}": escapeHtml(data.kidWeight ?? "Không có"),
 		"{{tien_su_benh}}": data.medicalHistory

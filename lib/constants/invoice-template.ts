@@ -20,10 +20,12 @@ export const printFont = Noto_Serif({
 
 export const invoiceTemplateCommonArgument = {
 	["{{ma_kham}}"]: "Mã khám",
+	["{{dia_chi}}"]: "Địa chỉ",
 	["{{ten_phu_huynh}}"]: "Tên phụ huynh",
 	["{{sdt_phu_huynh}}"]: "SĐT phụ huynh",
 	["{{ten_be}}"]: "Tên bé",
 	["{{ngay_sinh_be}}"]: "Ngày sinh bé",
+	["{{tuoi_be}}"]: "Tuổi của bé",
 	["{{gioi_tinh_be}}"]: "Giới tính bé",
 	["{{can_nang_be}}"]: "Cân nặng bé",
 	["{{tien_su_benh}}"]: "Tiền sử bệnh",
@@ -81,6 +83,7 @@ export const exampleInvoiceTemplateData: ExaminationDataNeededForInvoiceTemplate
 	{
 		id: "6facf040-a1bc-4aad-8db7-c331309b5f67",
 		parentName: "Tên phụ huynh",
+		address: "Kiến Hưng, Hà Nội",
 		parentPhone: "0xxxxxxxxx",
 		kidName: "Tên bé",
 		kidBirthDate: new Date(),

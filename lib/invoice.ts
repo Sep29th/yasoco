@@ -36,7 +36,7 @@ function getVietnamRange(
 	return { start: startVal, end: endVal };
 }
 async function fetchHourlyDataUTC(start: Date, end: Date) {
-	return await prisma.$queryRaw<
+	return prisma.$queryRaw<
 		Array<{
 			utcTime: Date;
 			sumExamination: bigint;
@@ -44,13 +44,13 @@ async function fetchHourlyDataUTC(start: Date, end: Date) {
 			sumDiscount: bigint;
 		}>
 	>`
-		SELECT 
-			DATE_TRUNC('hour', "createdAt") as "utcTime", 
-			SUM("examinationFee") as "sumExamination", 
-			SUM("serviceFee") as "sumService", 
-			SUM("totalDiscount") as "sumDiscount"
+		SELECT DATE_TRUNC('hour', "createdAt") as "utcTime",
+					 SUM("examinationFee")           as "sumExamination",
+					 SUM("serviceFee")               as "sumService",
+					 SUM("totalDiscount")            as "sumDiscount"
 		FROM "Invoice"
-		WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
+		WHERE "createdAt" >= ${start}
+			AND "createdAt" < ${end}
 		GROUP BY DATE_TRUNC('hour', "createdAt")
 	`;
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { InvoiceTemplate } from "@/lib/generated/prisma";
@@ -137,15 +138,52 @@ export default function PrintInvoiceModalButton({ examination }: PropsType) {
 								<div
 									ref={contentRef}
 									id="invoice-print"
-									className={`bg-white shadow-lg print:shadow-none prose prose-sm max-w-none ProseMirror preview ${printFont.className}`}
+									className={`bg-white shadow-lg print:shadow-none ${printFont.className}`}
 									style={{
 										width: "148mm",
 										minHeight: "210mm",
-										padding: "5mm",
+										padding: "5mm 10mm",
 										boxSizing: "border-box",
+										position: "relative", // Chuyển relative vào style
 									}}
-									dangerouslySetInnerHTML={{ __html: previewHtml }}
-								/>
+								>
+									{selectedTemplate?.backgroundImage && (
+										<div
+											style={{
+												position: "absolute",
+												top: 0,
+												left: 0,
+												width: "100%",
+												height: "100%",
+												zIndex: 0,
+												pointerEvents: "none",
+												userSelect: "none",
+												overflow: "hidden",
+											}}
+										>
+											<img
+												src={selectedTemplate.backgroundImage}
+												alt="Background"
+												style={{
+													width: "100%",
+													height: "100%",
+													objectFit: "contain",
+													objectPosition: "center",
+													opacity: 0.15,
+												}}
+											/>
+										</div>
+									)}
+
+									<div
+										className="prose prose-sm max-w-none ProseMirror preview"
+										dangerouslySetInnerHTML={{__html: previewHtml}}
+										style={{
+											position: "relative",
+											zIndex: 10,
+										}}
+									/>
+								</div>
 							</div>
 						</div>
 					</div>

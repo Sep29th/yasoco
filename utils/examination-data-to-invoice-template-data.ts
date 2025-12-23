@@ -2,10 +2,13 @@ import { ExaminationDataNeededForInvoiceTemplateType } from "@/utils/types/exami
 import { InvoiceTemplateDataType } from "@/utils/types/invoice-template-data";
 import { getDateVnTimezone } from "@/utils/get-date-vn-timezone";
 import { getTimeVnTimezone } from "@/utils/get-time-vn-timezone";
+import {getAgeDisplay} from "@/utils/get-age-display";
 
 export const examinationDataToInvoiceTemplateData = (
 	examination: ExaminationDataNeededForInvoiceTemplateType
 ): InvoiceTemplateDataType => {
+	const kidAge = getAgeDisplay(examination.kidBirthDate);
+
 	let serviceTotal = 0;
 
 	const services = examination.services.map((service, indx) => {
@@ -44,6 +47,7 @@ export const examinationDataToInvoiceTemplateData = (
 
 	return {
 		...examination,
+		kidAge,
 		serviceTotal,
 		discountTotal,
 		finalTotal,

@@ -35,6 +35,7 @@ import { redirect } from "next/navigation";
 import AddArticleButtonModal from "./_components/add-article-button-modal";
 import { getAllTags } from "@/lib/tag";
 import { TagFilter } from "./_components/tag-filter";
+import deleteArticleAction from "./_actions/delete-article";
 
 type SearchParams = {
 	page: string;
@@ -196,7 +197,7 @@ export default async function ArticlePage({ searchParams }: PropsType) {
 															Bạn có chắc muốn xóa bài viết này không?
 														</p>
 														<form
-															// action={deleteMedicineAction}
+															action={deleteArticleAction}
 															className="mt-3 flex items-center gap-2 justify-end"
 														>
 															<input

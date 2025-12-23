@@ -19,15 +19,14 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/", icon: HouseHeart, label: "Trang Chủ" },
-  { href: "#", icon: BriefcaseMedical, label: "Lĩnh vực" },
+  { href: "/linh-vuc", icon: BriefcaseMedical, label: "Lĩnh vực" },
   {
     href: "/gioi-thieu",
     icon: Stethoscope,
     label: "Giới thiệu",
     subLinks: [
       { href: "/gioi-thieu/ve-chung-toi", label: "Về chúng tôi" },
-      { href: "/gioi-thieu/bac-si", label: "Đội ngũ bác sĩ" },
-      { href: "/gioi-thieu/co-so-vat-chat", label: "Cơ sở vật chất" },
+      { href: "/gioi-thieu/gia-dich-vu", label: "Giá dịch vụ" },
     ],
   },
   { href: "/dat-lich-kham", icon: CalendarHeart, label: "Đặt lịch" },

@@ -12,6 +12,7 @@ export const createFormSchema = (
 	return z
 		.object({
 			parentName: z.string(),
+			address: z.string(),
 			parentPhone: z
 				.string()
 				.regex(/(84|0[3|5|7|8|9])+([0-9]{8})\b/, "SĐT không đúng định dạng"),

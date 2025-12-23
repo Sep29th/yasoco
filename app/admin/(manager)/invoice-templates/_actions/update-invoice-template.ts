@@ -8,7 +8,8 @@ import { revalidateTag } from "next/cache";
 export default async function updateInvoiceTemplate(
 	id: string,
 	name: string,
-	value: JSONContent
+	value: JSONContent,
+	backgroundImage: string,
 ) {
 	const auth = await requireAuth();
 
@@ -27,7 +28,7 @@ export default async function updateInvoiceTemplate(
 			revalidateTag("invoice-template-all", { expire: 0 });
 			return await tx.invoiceTemplate.update({
 				where: { id },
-				data: { name, value },
+				data: { name, value, backgroundImage },
 				select: { id: true },
 			});
 		});

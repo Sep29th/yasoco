@@ -1,6 +1,6 @@
 "use server";
 
-import { cacheLife, cacheTag } from "next/cache";
+import {cacheLife, cacheTag} from "next/cache";
 import prisma from "./prisma";
 
 export async function getInvoiceTemplateById(id: string) {
@@ -26,7 +26,5 @@ export async function getAllInvoiceTemplates() {
 	"use cache";
 	cacheTag("invoice-template-all");
 	cacheLife("max");
-	const data = await prisma.invoiceTemplate.findMany();
-
-	return data;
+	return await prisma.invoiceTemplate.findMany();
 }

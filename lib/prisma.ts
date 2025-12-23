@@ -1,6 +1,8 @@
 import { PrismaClient } from "./generated/prisma";
 
-const prismaClient = new PrismaClient({ log: ["query"] });
+const prismaClient = new PrismaClient(
+	process.env.NODE_ENV === "development" ? { log: ["query"] } : undefined
+);
 
 const extendedPrismaClient = prismaClient.$extends({
 	model: {

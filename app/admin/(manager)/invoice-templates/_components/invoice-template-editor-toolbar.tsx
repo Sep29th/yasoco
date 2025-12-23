@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect, useRef, useState, useTransition } from "react";
-import { Editor } from "@tiptap/react";
+import React, {useEffect, useRef, useState, useTransition} from "react";
+import {Editor} from "@tiptap/react";
 import {
 	AlignCenter,
 	AlignJustify,
@@ -22,6 +22,7 @@ import {
 	ArrowUp,
 	ArrowDown,
 	MoreHorizontal,
+	FileImage, // Import thêm icon cho Background
 } from "lucide-react";
 import uploadImage from "@/lib/upload-image";
 import {
@@ -32,11 +33,28 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-type PropsType = { editor: Editor | null };
-export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
+
+type PropsType = {
+	editor: Editor | null;
+	background?: boolean;
+	onBackgroundChange?: (newUrl: string) => void;
+};
+
+export default function InvoiceTemplateEditorToolbar({
+																											 editor,
+																											 background,
+																											 onBackgroundChange,
+																										 }: PropsType) {
 	const [, setForceUpdate] = useState(0);
+
+	// Refs cho input file
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
-	const [isPending, startTransition] = useTransition();
+	const backgroundInputRef = useRef<HTMLInputElement | null>(null);
+
+	// Transitions
+	const [isPending, startTransition] = useTransition(); // Cho ảnh trong bài viết
+	const [isBgPending, startBgTransition] = useTransition(); // Cho ảnh nền
+
 	useEffect(() => {
 		if (!editor) return;
 		const update = () => setForceUpdate((prev) => prev + 1);
@@ -45,9 +63,11 @@ export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
 			editor.off("transaction", update);
 		};
 	}, [editor]);
+
 	if (!editor) {
 		return null;
 	}
+
 	const setFontSize = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const value = e.target.value;
 		if (value === "paragraph") {
@@ -55,32 +75,37 @@ export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
 			return;
 		}
 		const level = parseInt(value, 10) as 1 | 2 | 3 | 4 | 5 | 6;
-		editor.chain().focus().setHeading({ level }).run();
+		editor.chain().focus().setHeading({level}).run();
 	};
-	const currentFontValue = editor.isActive("heading", { level: 1 })
+
+	const currentFontValue = editor.isActive("heading", {level: 1})
 		? "1"
-		: editor.isActive("heading", { level: 2 })
-		? "2"
-		: editor.isActive("heading", { level: 3 })
-		? "3"
-		: editor.isActive("heading", { level: 4 })
-		? "4"
-		: editor.isActive("heading", { level: 5 })
-		? "5"
-		: editor.isActive("heading", { level: 6 })
-		? "6"
-		: "paragraph";
+		: editor.isActive("heading", {level: 2})
+			? "2"
+			: editor.isActive("heading", {level: 3})
+				? "3"
+				: editor.isActive("heading", {level: 4})
+					? "4"
+					: editor.isActive("heading", {level: 5})
+						? "5"
+						: editor.isActive("heading", {level: 6})
+							? "6"
+							: "paragraph";
+
 	const insertTable = () => {
 		editor
 			.chain()
 			.focus()
-			.insertTable({ rows: 1, cols: 2, withHeaderRow: false })
+			.insertTable({rows: 1, cols: 2, withHeaderRow: false})
 			.run();
 	};
+
+	// --- Xử lý ảnh Inline (trong nội dung) ---
 	const handleAddImageClick = () => {
 		if (!fileInputRef.current) return;
 		fileInputRef.current.click();
 	};
+
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (!file) return;
@@ -89,7 +114,7 @@ export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
 		startTransition(async () => {
 			const result = await uploadImage(formData);
 			if (result.success && result.url) {
-				editor.chain().focus().setImage({ src: result.url }).run();
+				editor.chain().focus().setImage({src: result.url}).run();
 			} else {
 				console.error("Upload failed:", result.error);
 				alert("Có lỗi xảy ra khi tải ảnh lên.");
@@ -99,9 +124,49 @@ export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
 			}
 		});
 	};
+
+	// --- Xử lý ảnh Background (MỚI) ---
+	const handleBackgroundClick = () => {
+		if (!backgroundInputRef.current) return;
+		backgroundInputRef.current.click();
+	};
+
+	const handleBackgroundFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		// Nếu không có hàm callback thì không làm gì
+		if (!onBackgroundChange) return;
+
+		const formData = new FormData();
+		formData.append("file", file);
+
+		startBgTransition(async () => {
+			const result = await uploadImage(formData);
+			if (result.success && result.url) {
+				// Gọi callback để cập nhật url background
+				onBackgroundChange(result.url);
+			} else {
+				console.error("Background upload failed:", result.error);
+				alert("Có lỗi xảy ra khi tải ảnh nền.");
+			}
+			// Reset input
+			if (backgroundInputRef.current) {
+				backgroundInputRef.current.value = "";
+			}
+		});
+	};
+
+	const removeBackground = () => {
+		if (onBackgroundChange) {
+			onBackgroundChange(""); // Set về chuỗi rỗng
+		}
+	};
+
 	const isTableActive = editor.isActive("table");
 	const btnClass =
 		"p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent cursor-pointer transition-colors";
+
 	return (
 		<div className="border-b border-gray-200 bg-gray-50 p-2 flex flex-wrap gap-2 items-center sticky top-0 z-10">
 			<select
@@ -110,9 +175,11 @@ export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
 				value={currentFontValue}
 			>
 				<option value="paragraph">Normal</option>
-				<option value="1">H1 rất lớn</option> <option value="2">H2 lớn</option>
+				<option value="1">H1 rất lớn</option>
+				<option value="2">H2 lớn</option>
 				<option value="3">H3 trung bình</option>
-				<option value="4">H4 hơi nhỏ</option> <option value="5">H5 nhỏ</option>
+				<option value="4">H4 hơi nhỏ</option>
+				<option value="5">H5 nhỏ</option>
 				<option value="6">H6 rất nhỏ</option>
 			</select>
 			<div className="w-px h-6 bg-gray-300 mx-1" />
@@ -195,12 +262,14 @@ export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
 				<AlignJustify size={18} />
 			</button>
 			<div className="w-px h-6 bg-gray-300 mx-1" />
+
+			{/* Nút thêm ảnh Inline */}
 			<button
 				type="button"
 				onClick={handleAddImageClick}
 				disabled={isPending}
 				className={`${btnClass} flex items-center gap-1 relative`}
-				title="Thêm ảnh"
+				title="Thêm ảnh vào nội dung"
 			>
 				{isPending ? (
 					<Loader2 size={18} className="animate-spin text-[#A6CF52]" />
@@ -215,6 +284,7 @@ export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
 				className="hidden"
 				onChange={handleFileChange}
 			/>
+
 			<button
 				type="button"
 				onClick={() => editor.chain().focus().setHorizontalRule().run()}
@@ -224,6 +294,8 @@ export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
 				<Minus size={18} />
 			</button>
 			<div className="w-px h-6 bg-gray-300 mx-1" />
+
+			{/* Menu Table */}
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<button
@@ -314,6 +386,54 @@ export default function InvoiceTemplateEditorToolbar({ editor }: PropsType) {
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
+
+			<div className="w-px h-6 bg-gray-300 mx-1" />
+
+			{/* --- Menu Background (MỚI) --- */}
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<button
+						type="button"
+						className={btnClass}
+						title="Ảnh nền (Background)"
+					>
+						{isBgPending ? (
+							<Loader2 size={18} className="animate-spin text-[#A6CF52]" />
+						) : (
+							<FileImage size={18} />
+						)}
+					</button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuLabel>Ảnh nền</DropdownMenuLabel>
+					<DropdownMenuItem onClick={handleBackgroundClick} disabled={isBgPending}>
+						<Plus className="mr-2 h-4 w-4" />
+						<span>{background ? "Đổi ảnh nền" : "Tải ảnh nền"}</span>
+					</DropdownMenuItem>
+
+					{background && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								onClick={removeBackground}
+								className="text-red-600 focus:text-red-600 focus:bg-red-50"
+							>
+								<Trash2 className="mr-2 h-4 w-4" />
+								<span>Xóa ảnh nền</span>
+							</DropdownMenuItem>
+						</>
+					)}
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			{/* Input ẩn cho background */}
+			<input
+				ref={backgroundInputRef}
+				type="file"
+				accept="image/*"
+				className="hidden"
+				onChange={handleBackgroundFileChange}
+			/>
 		</div>
 	);
 }

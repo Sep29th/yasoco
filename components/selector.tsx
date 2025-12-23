@@ -1,8 +1,16 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { Check, ChevronsUpDown, Minus, Plus, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import {useState, useRef, useEffect} from "react";
+import {
+	Check,
+	ChevronsUpDown,
+	Minus,
+	Plus,
+	X,
+	Zap,
+	NotebookPen,
+} from "lucide-react";
+import {cn} from "@/lib/utils";
+import {Button} from "@/components/ui/button";
 import {
 	Command,
 	CommandEmpty,
@@ -16,11 +24,11 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Input } from "./ui/input";
-import { FormControl, FormField, FormItem } from "./ui/form";
-import { UseFormReturn } from "react-hook-form";
-import { FormValues } from "@/app/admin/(manager)/examinations/examine/_schemas/form-schema";
-import { useDebounce } from "@/lib/hooks/use-debounce";
+import {Input} from "./ui/input";
+import {FormControl, FormField, FormItem} from "./ui/form";
+import {UseFormReturn} from "react-hook-form";
+import {FormValues} from "@/app/admin/(manager)/examinations/examine/_schemas/form-schema";
+import {useDebounce} from "@/lib/hooks/use-debounce";
 
 function removeAccents(str: string) {
 	return str
@@ -50,24 +58,31 @@ type PropsType = {
 	placeholder?: string;
 	disabled?: boolean;
 	needInput?: boolean;
+	suggestions?: string[];
 };
 
 export default function Selector({
-	options = [],
-	value,
-	onChange,
-	placeholder = "Chọn mục...",
-	disabled = false,
-	needInput,
-	name,
-	form,
-}: PropsType) {
+																	 options = [],
+																	 value,
+																	 onChange,
+																	 placeholder = "Chọn mục...",
+																	 disabled = false,
+																	 needInput,
+																	 name,
+																	 form,
+																	 suggestions = [],
+																 }: PropsType) {
 	const [open, setOpen] = useState(false);
 	const [internalItems, setInternalItems] = useState<SelectedItem[]>([]);
 	const [inputValue, setInputValue] = useState("");
 	const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>(
 		{}
 	);
+
+	const [suggestionOpen, setSuggestionOpen] = useState<Record<string, boolean>>(
+		{}
+	);
+
 	const debouncedSearch = useDebounce(inputValue, 300);
 	const commandListRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +102,7 @@ export default function Selector({
 
 	useEffect(() => {
 		if (commandListRef.current) {
-			commandListRef.current.scrollTo({ top: 0, behavior: "smooth" });
+			commandListRef.current.scrollTo({top: 0, behavior: "smooth"});
 		}
 	}, [debouncedSearch]);
 
@@ -97,10 +112,10 @@ export default function Selector({
 		if (exists) {
 			updateQuantity(option.id, 1);
 		} else {
-			const newItem: SelectedItem = { ...option, quantity: 1 };
+			const newItem: SelectedItem = {...option, quantity: 1};
 			if (name === "medicines") newItem.dosage = "";
 			setItems([...items, newItem]);
-			setQuantityInputs((prev) => ({ ...prev, [option.id]: "1" }));
+			setQuantityInputs((prev) => ({...prev, [option.id]: "1"}));
 		}
 	};
 
@@ -109,8 +124,8 @@ export default function Selector({
 			items.map((item) => {
 				if (item.id === id) {
 					const newQuantity = Math.max(1, item.quantity + delta);
-					setQuantityInputs((prev) => ({ ...prev, [id]: String(newQuantity) }));
-					return { ...item, quantity: newQuantity };
+					setQuantityInputs((prev) => ({...prev, [id]: String(newQuantity)}));
+					return {...item, quantity: newQuantity};
 				}
 				return item;
 			})
@@ -119,7 +134,7 @@ export default function Selector({
 
 	const handleQuantityInputChange = (id: string, value: string) => {
 		if (value === "" || /^\d+$/.test(value)) {
-			setQuantityInputs((prev) => ({ ...prev, [id]: value }));
+			setQuantityInputs((prev) => ({...prev, [id]: value}));
 		}
 	};
 
@@ -129,23 +144,23 @@ export default function Selector({
 
 		if (!inputVal || isNaN(numValue) || numValue < 1) {
 			setItems(
-				items.map((item) => (item.id === id ? { ...item, quantity: 1 } : item))
+				items.map((item) => (item.id === id ? {...item, quantity: 1} : item))
 			);
-			setQuantityInputs((prev) => ({ ...prev, [id]: "1" }));
+			setQuantityInputs((prev) => ({...prev, [id]: "1"}));
 		} else {
 			setItems(
 				items.map((item) =>
-					item.id === id ? { ...item, quantity: numValue } : item
+					item.id === id ? {...item, quantity: numValue} : item
 				)
 			);
-			setQuantityInputs((prev) => ({ ...prev, [id]: String(numValue) }));
+			setQuantityInputs((prev) => ({...prev, [id]: String(numValue)}));
 		}
 	};
 
 	const updateNote = (id: string, newNote: string) => {
 		setItems(
 			items.map((item) =>
-				item.id === id ? { ...item, dosage: newNote } : item
+				item.id === id ? {...item, dosage: newNote} : item
 			)
 		);
 	};
@@ -153,7 +168,7 @@ export default function Selector({
 	const removeItem = (id: string) => {
 		setItems(items.filter((item) => item.id !== id));
 		setQuantityInputs((prev) => {
-			const newInputs = { ...prev };
+			const newInputs = {...prev};
 			delete newInputs[id];
 			return newInputs;
 		});
@@ -173,12 +188,12 @@ export default function Selector({
 						<span className="truncate text-muted-foreground">
 							{placeholder}
 						</span>
-						<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
 					</Button>
 				</PopoverTrigger>
 				{!disabled && (
 					<PopoverContent
-						className="w-(--radix-popover-trigger-width) p-0"
+						className="w-[--radix-popover-trigger-width] p-0"
 						align="start"
 					>
 						<Command shouldFilter={false}>
@@ -234,6 +249,7 @@ export default function Selector({
 					</PopoverContent>
 				)}
 			</Popover>
+
 			<div
 				className={cn(
 					"flex flex-col gap-2 border rounded-md p-2 bg-slate-50 overflow-y-auto custom-scrollbar",
@@ -276,6 +292,7 @@ export default function Selector({
 									)}
 								</div>
 							</div>
+
 							{needInput && (
 								<>
 									{name === "medicines" && (
@@ -283,28 +300,82 @@ export default function Selector({
 											control={form.control}
 											name={`medicines.${idx}.dosage`}
 											render={() => (
-												<FormItem className="flex-2">
-													<FormControl>
-														<Input
-															className={cn(
-																"w-full",
-																disabled && "cursor-not-allowed"
-															)}
-															type="text"
-															value={item.dosage || ""}
-															onChange={(e) =>
-																updateNote(item.id, e.target.value)
+												<FormItem className="flex-2 min-w-[120px]">
+													<div className="flex items-center gap-1">
+														<FormControl>
+															<Input
+																className={cn(
+																	"w-full h-9",
+																	disabled && "cursor-not-allowed"
+																)}
+																type="text"
+																value={item.dosage || ""}
+																onChange={(e) =>
+																	updateNote(item.id, e.target.value)
+																}
+																disabled={disabled}
+																placeholder="Liều dùng..."
+															/>
+														</FormControl>
+														<Popover
+															open={suggestionOpen[item.id] || false}
+															onOpenChange={(isOpen) =>
+																setSuggestionOpen((prev) => ({
+																	...prev,
+																	[item.id]: isOpen,
+																}))
 															}
-															disabled={disabled}
-															placeholder="Liều dùng..."
-														/>
-													</FormControl>
+														>
+															<PopoverTrigger asChild>
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	className="h-9 w-9 shrink-0 text-slate-500 hover:text-[#A6CF4E]"
+																	disabled={disabled}
+																	title="Chọn liều dùng mẫu"
+																>
+																	<NotebookPen className="h-4 w-4"/>
+																</Button>
+															</PopoverTrigger>
+															<PopoverContent
+																className="w-[400px] p-0"
+																align="end"
+															>
+																<Command>
+																	<CommandInput placeholder="Tìm mẫu..."/>
+																	<CommandList>
+																		<CommandEmpty>
+																			Không có mẫu này.
+																		</CommandEmpty>
+																		<CommandGroup heading="Gợi ý nhanh">
+																			{suggestions.map((sugg, i) => (
+																				<CommandItem
+																					key={i}
+																					onSelect={() => {
+																						updateNote(item.id, sugg);
+																						setSuggestionOpen((prev) => ({
+																							...prev,
+																							[item.id]: false,
+																						}));
+																					}}
+																					className="cursor-pointer"
+																				>
+																					{sugg}
+																				</CommandItem>
+																			))}
+																		</CommandGroup>
+																	</CommandList>
+																</Command>
+															</PopoverContent>
+														</Popover>
+													</div>
 												</FormItem>
 											)}
 										/>
 									)}
 								</>
 							)}
+
 							<div
 								className={cn(
 									"flex items-center border rounded bg-white shrink-0",
@@ -317,7 +388,7 @@ export default function Selector({
 									disabled={disabled}
 									className="px-2 py-1 hover:bg-gray-100 border-r disabled:cursor-not-allowed cursor-pointer"
 								>
-									<Minus className="h-3 w-3" />
+									<Minus className="h-3 w-3"/>
 								</button>
 								<Input
 									type="text"
@@ -328,7 +399,7 @@ export default function Selector({
 									}
 									onBlur={() => handleQuantityInputBlur(item.id)}
 									disabled={disabled}
-									className="h-7 w-12 px-1 text-center font-semibold text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+									className="h-7 w-12 px-1 text-center font-semibold text-xs border-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
 								/>
 								<button
 									type="button"
@@ -336,7 +407,7 @@ export default function Selector({
 									disabled={disabled}
 									className="px-2 py-1 hover:bg-gray-100 border-l disabled:cursor-not-allowed cursor-pointer"
 								>
-									<Plus className="h-3 w-3" />
+									<Plus className="h-3 w-3"/>
 								</button>
 							</div>
 							<button
@@ -345,7 +416,7 @@ export default function Selector({
 								disabled={disabled}
 								className="text-gray-400 hover:text-red-500 p-1 disabled:cursor-not-allowed disabled:hover:text-gray-400 shrink-0 cursor-pointer"
 							>
-								<X className="h-4 w-4" />
+								<X className="h-4 w-4"/>
 							</button>
 						</div>
 					))
