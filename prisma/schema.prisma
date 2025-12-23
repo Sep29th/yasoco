@@ -196,6 +196,12 @@ model Medicine {
   @@index([searchTsv], type: Gin, name: "Medicine_search_tsv_idx")
 }
 
+model DosageTemplate {
+  id       String @id @default(uuid())
+  shortcut String
+  content  String
+}
+
 model Service {
   id          String   @id @default(uuid())
   name        String

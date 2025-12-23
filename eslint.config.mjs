@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
 		rules: {
 			"@typescript-eslint/no-unused-vars": "off",
 			"react-hooks/exhaustive-deps": "off",
+			"react-hooks/set-state-in-effect": "off",
 			"@typescript-eslint/no-namespace": "off",
 		},
 	},

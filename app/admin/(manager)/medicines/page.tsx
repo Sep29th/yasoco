@@ -1,8 +1,8 @@
-import { requireAuth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import {requireAuth} from "@/lib/auth";
+import {redirect} from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -24,7 +24,7 @@ import {
 	Trash2,
 	Plus,
 	FileSpreadsheet,
-	Search,
+	Search, Feather,
 } from "lucide-react";
 import {
 	Tooltip,
@@ -36,9 +36,10 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { getPaginationMedicines, getMedicineById } from "@/lib/medicine";
-import { deleteMedicineAction } from "./_actions/delete";
+import {getPaginationMedicines, getMedicineById} from "@/lib/medicine";
+import {deleteMedicineAction} from "./_actions/delete";
 import MedicineModalContent from "./_components/modal-content";
+
 type PropsType = {
 	searchParams: Promise<{
 		page?: string;
@@ -47,7 +48,7 @@ type PropsType = {
 		search?: string;
 	}>;
 };
-export default async function MedicinesPage({ searchParams }: PropsType) {
+export default async function MedicinesPage({searchParams}: PropsType) {
 	const auth = await requireAuth();
 	if (!auth.permissions.includes("medicine:read")) {
 		redirect("/admin/forbidden");
@@ -58,9 +59,9 @@ export default async function MedicinesPage({ searchParams }: PropsType) {
 		typeof spTyped.error === "string" ? spTyped.error.trim() : "";
 	const page = Math.max(1, parseInt((sp.page as string) || "1", 10) || 1);
 	const pageSize = 10;
-	const { search } = sp;
+	const {search} = sp;
 	const searchRaw = typeof search === "string" ? search.trim() : "";
-	const { total, medicines } = await getPaginationMedicines(
+	const {total, medicines} = await getPaginationMedicines(
 		page,
 		pageSize,
 		search
@@ -93,10 +94,22 @@ export default async function MedicinesPage({ searchParams }: PropsType) {
 								placeholder="Tìm tên thuốc, mô tả..."
 								className="w-full bg-white pr-8"
 							/>
-							<Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+							<Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none"/>
 						</div>
 					</form>
 					<div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+						<Link
+							href="/admin/dosage-templates"
+							className="no-underline w-full sm:w-auto"
+						>
+							<Button
+								size="lg"
+								variant="outline"
+								className="cursor-pointer w-full sm:w-auto bg-white"
+							>
+								<Feather className="size-4 mr-2"/> Mẫu liều dùng
+							</Button>
+						</Link>
 						{auth.permissions.includes("medicine:create") && (
 							<>
 								<Link
@@ -107,7 +120,7 @@ export default async function MedicinesPage({ searchParams }: PropsType) {
 										size="lg"
 										className="cursor-pointer bg-[#A6CF52] hover:bg-[#94B846] w-full sm:w-auto"
 									>
-										<FileSpreadsheet className="size-4 mr-2" /> Nhập Excel
+										<FileSpreadsheet className="size-4 mr-2"/> Nhập Excel
 									</Button>
 								</Link>
 								<Link
@@ -119,7 +132,7 @@ export default async function MedicinesPage({ searchParams }: PropsType) {
 										variant="outline"
 										className="cursor-pointer w-full sm:w-auto bg-white"
 									>
-										<Plus className="size-4 mr-2" /> Thêm thuốc
+										<Plus className="size-4 mr-2"/> Thêm thuốc
 									</Button>
 								</Link>
 							</>
@@ -164,7 +177,7 @@ export default async function MedicinesPage({ searchParams }: PropsType) {
 														variant="ghost"
 														size="icon"
 													>
-														<Eye className="size-4" />
+														<Eye className="size-4"/>
 													</Button>
 												</TooltipTrigger>
 												<TooltipContent side="left">
@@ -181,7 +194,7 @@ export default async function MedicinesPage({ searchParams }: PropsType) {
 															variant="ghost"
 															size="icon"
 														>
-															<Edit3 className="size-4" />
+															<Edit3 className="size-4"/>
 														</Button>
 													</TooltipTrigger>
 													<TooltipContent>
@@ -200,7 +213,7 @@ export default async function MedicinesPage({ searchParams }: PropsType) {
 																variant="ghost"
 																size="icon"
 															>
-																<Trash2 className="size-4 text-destructive" />
+																<Trash2 className="size-4 text-destructive"/>
 															</Button>
 														</TooltipTrigger>
 													</PopoverTrigger>
@@ -217,7 +230,7 @@ export default async function MedicinesPage({ searchParams }: PropsType) {
 																name="id"
 																value={medicine.id}
 															/>
-															<input type="hidden" name="page" value={page} />
+															<input type="hidden" name="page" value={page}/>
 															{searchRaw && (
 																<input
 																	type="hidden"
@@ -295,7 +308,7 @@ export default async function MedicinesPage({ searchParams }: PropsType) {
 					</PaginationContent>
 				</Pagination>
 			</nav>
-			{modalData ? <MedicineModalContent data={modalData} /> : null}
+			{modalData ? <MedicineModalContent data={modalData}/> : null}
 		</div>
 	);
 }

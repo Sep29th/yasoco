@@ -35,7 +35,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {Examination, Medicine, Service} from "@/lib/generated/prisma";
+import {DosageTemplate, Examination, Medicine, Service} from "@/lib/generated/prisma";
 import {Ban} from "lucide-react";
 import ExaminationTypeBadge from "../../_components/examination-type-badge";
 import ExaminationStatusBadge from "../../_components/examination-status-badge";
@@ -71,6 +71,7 @@ type PropsType = {
 	data: {
 		medicines: Omit<Medicine, "createdAt" | "updatedAt">[];
 		services: Omit<Service, "createdAt" | "updatedAt">[];
+		dosageTemplates: DosageTemplate[];
 		examinationFee: number;
 		date: Date;
 	};
@@ -557,14 +558,7 @@ export default function ExaminationFormClient({
 													needInput
 													form={form}
 													name="medicines"
-													suggestions={[
-														"Sáng 1 gói, tối 1 gói sau ăn",
-														"Sáng 1 viên, tối 1 viên sau ăn",
-														"Sáng 2 viên, tối 2 viên sau ăn",
-														"Xịt mũi ngày 3 lần",
-														"Sáng 5ml, tối 5ml sau ăn",
-														"Uống 1 gói khi sốt trên 38,5 độ"
-													]}
+													suggestions={data.dosageTemplates}
 												/>
 											</FormControl>
 										</FormItem>

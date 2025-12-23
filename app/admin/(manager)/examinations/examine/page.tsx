@@ -11,6 +11,7 @@ import {ExaminationStatus} from "@/lib/generated/prisma";
 import ExaminationDetailModalButton from "../_components/examination-detail-modal-button";
 import updateStatus from "./_actions/update-status";
 import BackButton from "@/components/back-button";
+import {getAllDosageTemplates} from "@/lib/dosage-template";
 
 type PropsType = { searchParams: Promise<ExamineParams> };
 const renderTitle = (status: ExaminationStatus | undefined) => {
@@ -47,10 +48,11 @@ export default async function ExaminePage({searchParams}: PropsType) {
 		examination = await getExaminationById(examinationId);
 		if (!examination) redirect(`${returnTo}&error=Lịch khám không tồn tại`);
 	}
-	const [medicines, services, examinationFee] = await Promise.all([
+	const [medicines, services, examinationFee, dosageTemplates] = await Promise.all([
 		getAllMedicines(),
 		getAllServices(),
 		getExaminationFee(),
+		getAllDosageTemplates()
 	]);
 	if (examination && examination.status === ExaminationStatus.WAITING) {
 		await updateStatus(examination.id, ExaminationStatus.IN_PROGRESS);
@@ -114,6 +116,7 @@ export default async function ExaminePage({searchParams}: PropsType) {
 				data={{
 					medicines,
 					services,
+					dosageTemplates,
 					examinationFee: examinationFee?.value || 0,
 					date: examination?.date || new Date(),
 				}}
