@@ -275,7 +275,7 @@ export default function Selector({
 					</Button>
 				</PopoverTrigger>
 				{!disabled && (
-					<PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+					<PopoverContent className="w-(--radix-popper-anchor-width) p-0" align="start">
 						<Command shouldFilter={false}>
 							<CommandInput
 								placeholder="Tìm kiếm..."
@@ -363,14 +363,14 @@ export default function Selector({
 									render={() => (
 										<FormItem className="flex-2 min-w-[120px]">
 											<div className="flex items-center gap-1">
-												<FormControl>
-													<Popover
-														open={inlineOpenId === item.id && filteredSuggestions.length > 0}
-														onOpenChange={(isOpen) => {
-															if (!isOpen) setInlineOpenId(null);
-														}}
-													>
-														<PopoverTrigger asChild>
+												<Popover
+													open={inlineOpenId === item.id && filteredSuggestions.length > 0}
+													onOpenChange={(isOpen) => {
+														if (!isOpen) setInlineOpenId(null);
+													}}
+												>
+													<PopoverTrigger asChild>
+														<FormControl>
 															<Input
 																className={cn("w-full h-9", disabled && "cursor-not-allowed")}
 																type="text"
@@ -381,49 +381,49 @@ export default function Selector({
 																placeholder="Liều dùng (gõ @)..."
 																autoComplete="off"
 															/>
-														</PopoverTrigger>
-														<PopoverContent
-															className="w-[300px] p-1"
-															align="start"
-															onOpenAutoFocus={(e) => e.preventDefault()}
-														>
-															{filteredSuggestions.length === 0 ? (
-																<div className="py-6 text-center text-sm text-muted-foreground">
-																	Không có mẫu phù hợp.
+														</FormControl>
+													</PopoverTrigger>
+													<PopoverContent
+														className="w-(--radix-popper-anchor-width) p-1"
+														align="start"
+														onOpenAutoFocus={(e) => e.preventDefault()}
+													>
+														{filteredSuggestions.length === 0 ? (
+															<div className="py-6 text-center text-sm text-muted-foreground">
+																Không có mẫu phù hợp.
+															</div>
+														) : (
+															<div className="max-h-[200px] overflow-y-auto" ref={suggestionListRef}>
+																<div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+																	Gợi ý nhanh
 																</div>
-															) : (
-																<div className="max-h-[200px] overflow-y-auto" ref={suggestionListRef}>
-																	<div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-																		Gợi ý nhanh
-																	</div>
-																	{filteredSuggestions.map((sugg, i) => (
-																		<div
-																			key={sugg.id}
-																			onClick={() => selectSuggestion(item.id, sugg, true)}
-																			className={cn(
-																				"relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
-																				i === selectedIndex
-																					? "bg-accent text-accent-foreground"
-																					: "hover:bg-accent hover:text-accent-foreground"
-																			)}
-																		>
-																			<div className="flex flex-col w-full">
+																{filteredSuggestions.map((sugg, i) => (
+																	<div
+																		key={sugg.id}
+																		onClick={() => selectSuggestion(item.id, sugg, true)}
+																		className={cn(
+																			"relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
+																			i === selectedIndex
+																				? "bg-accent text-accent-foreground"
+																				: "hover:bg-accent hover:text-accent-foreground"
+																		)}
+																	>
+																		<div className="flex flex-col w-full">
                                                 <span className="font-medium text-sm flex items-center gap-2">
                                                     <AlignLeft className="h-3 w-3 text-muted-foreground"/>
 																									{sugg.content}
                                                 </span>
-																				<span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+																			<span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                                                     <Hash className="h-3 w-3"/>
-																					{sugg.shortcut}
+																				{sugg.shortcut}
                                                 </span>
-																			</div>
 																		</div>
-																	))}
-																</div>
-															)}
-														</PopoverContent>
-													</Popover>
-												</FormControl>
+																	</div>
+																))}
+															</div>
+														)}
+													</PopoverContent>
+												</Popover>
 												<Popover
 													open={notebookOpen[item.id] || false}
 													onOpenChange={(isOpen) =>

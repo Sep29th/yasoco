@@ -77,17 +77,38 @@ type PropsType = {
 	};
 	returnTo: string;
 };
+
 export default function ExaminationFormClient({
 																								initialFormValue,
 																								data,
 																								returnTo,
 																							}: PropsType) {
 	const needToBackStatusRef = useRef(true);
+	const needToSaveFormValueRef = useRef(true)
+	const STORAGE_KEY = `exam-form-draft-${initialFormValue.id || "new"}`;
+
 	const mode = useMemo(
 		() => getModeFromStatus(initialFormValue.status),
 		[initialFormValue.status]
 	);
 	const schema = useMemo(() => createFormSchema(mode), [mode]);
+
+	let parsedData: Partial<FormValues> = {};
+
+	if (typeof window !== "undefined") {
+		const savedData = sessionStorage.getItem(STORAGE_KEY);
+		if (savedData) {
+			try {
+				parsedData = JSON.parse(savedData);
+				if (parsedData.kidBirthDate) {
+					parsedData.kidBirthDate = new Date(parsedData.kidBirthDate);
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		}
+	}
+
 	const form = useForm<FormValues>({
 		resolver: zodResolver(schema),
 		defaultValues: {
@@ -105,8 +126,22 @@ export default function ExaminationFormClient({
 			medicines: initialFormValue.medicines || [],
 			note: initialFormValue.note || undefined,
 			discounts: initialFormValue.discounts || [],
+			...parsedData,
 		},
 	});
+
+	useEffect(() => {
+		return () => {
+			if (typeof window !== "undefined") {
+				if (needToSaveFormValueRef.current) sessionStorage.setItem(STORAGE_KEY, JSON.stringify(form.getValues()));
+				else {
+					sessionStorage.removeItem(STORAGE_KEY);
+					needToSaveFormValueRef.current = true;
+				}
+			}
+		}
+	}, []);
+
 	const isDisabled = useMemo(() => {
 		switch (mode) {
 			case "receive":
@@ -182,11 +217,13 @@ export default function ExaminationFormClient({
 		[data.medicines]
 	);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
 	const onSubmit = async (values: FormValues) => {
 		if (isSubmitting) return;
 		try {
 			setIsSubmitting(true);
 			needToBackStatusRef.current = false;
+			needToSaveFormValueRef.current = false;
 			if (mode === "receive")
 				await receiveAction(
 					JSON.parse(JSON.stringify(values)),
@@ -211,6 +248,7 @@ export default function ExaminationFormClient({
 					returnTo,
 					initialFormValue?.id || ""
 				);
+
 		} catch (_: unknown) {
 		} finally {
 			setIsSubmitting(false);
@@ -230,14 +268,13 @@ export default function ExaminationFormClient({
 			>
 				<div className="lg:col-span-4 space-y-6">
 					<div className="bg-white rounded shadow p-6 space-y-4 lg:h-full">
-						<span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
-							Thông tin cơ bản
-						</span>
+            <span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
+              Thông tin cơ bản
+            </span>
+						{/* ... Rest of your UI code remains exactly the same ... */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
 							<div className="space-y-1">
-								<span className="text-xs text-muted-foreground">
-									Trạng thái
-								</span>
+								<span className="text-xs text-muted-foreground">Trạng thái</span>
 								<div className="min-h-6">
 									{initialFormValue.status ? (
 										<ExaminationStatusBadge status={initialFormValue.status}/>
@@ -251,9 +288,7 @@ export default function ExaminationFormClient({
 							<div className="space-y-1">
 								<span className="text-xs text-muted-foreground">Loại khám</span>
 								<div className="min-h-6">
-									<ExaminationTypeBadge
-										type={initialFormValue.type || "WALK_IN"}
-									/>
+									<ExaminationTypeBadge type={initialFormValue.type || "WALK_IN"}/>
 								</div>
 							</div>
 						</div>
@@ -307,7 +342,11 @@ export default function ExaminationFormClient({
 									<FormItem>
 										<FormLabel>Địa chỉ</FormLabel>
 										<FormControl>
-											<Input {...field} placeholder={"Ví dụ: Tòa XX.XX, Ocean Park,..."} disabled={isDisabled.basicInfo}/>
+											<Input
+												{...field}
+												placeholder={"Ví dụ: Tòa XX.XX, Ocean Park,..."}
+												disabled={isDisabled.basicInfo}
+											/>
 										</FormControl>
 										<FormMessage className="font-light leading-none"/>
 									</FormItem>
@@ -378,8 +417,8 @@ export default function ExaminationFormClient({
 											</FormLabel>
 											{field.value && (
 												<span className="ml-2 font-normal text-muted-foreground text-sm leading-0">
-													{getAgeDisplay(field.value)}
-												</span>
+                          {getAgeDisplay(field.value)}
+                        </span>
 											)}
 										</div>
 										<FormControl>
@@ -447,9 +486,9 @@ export default function ExaminationFormClient({
 				</div>
 				<div className="lg:col-span-7 space-y-6">
 					<div className="bg-white rounded shadow p-6 space-y-4 lg:h-full">
-						<span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
-							Thông tin khám
-						</span>
+            <span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
+              Thông tin khám
+            </span>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div className="space-y-2">
 								<FormField
@@ -570,9 +609,9 @@ export default function ExaminationFormClient({
 				</div>
 				<div className="lg:col-span-4 space-y-6 flex flex-col lg:h-full">
 					<div className="bg-white rounded shadow p-6 flex-1 flex flex-col lg:h-full overflow-hidden">
-						<span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
-							Thông tin thanh toán
-						</span>
+            <span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
+              Thông tin thanh toán
+            </span>
 						<SubmitPart
 							initialFormValue={initialFormValue}
 							data={data}
@@ -582,6 +621,7 @@ export default function ExaminationFormClient({
 							isDisabled={isDisabled}
 							returnTo={returnTo}
 							needToBackStatusRef={needToBackStatusRef}
+							// Truyền STORAGE_KEY xuống nếu muốn Cancel cũng xóa form (optional)
 						/>
 					</div>
 				</div>
@@ -590,6 +630,9 @@ export default function ExaminationFormClient({
 	);
 }
 
+// ... Rest of the file (SubmitPart, renderSubmitText, etc.) remains the same
+// ... Just make sure the file ends with the closing braces properly.
+// ... SubmitPart implementation is below just to ensure context is kept
 const renderSubmitText = (mode: "receive" | "examine" | "pay" | "edit") => {
 	switch (mode) {
 		case "receive":
@@ -712,12 +755,12 @@ const SubmitPart = ({
 									<div className="flex-1 pr-2">
 										<span className="block text-gray-900">{item.name}</span>
 										<span className="text-xs text-gray-500">
-											SL: {item.quantity}
-										</span>
+              SL: {item.quantity}
+             </span>
 									</div>
 									<span className="font-medium text-gray-900 shrink-0">
-										{((item.price || 0) * item.quantity).toLocaleString()}đ
-									</span>
+             {((item.price || 0) * item.quantity).toLocaleString()}đ
+            </span>
 								</div>
 							))
 						) : (
@@ -732,8 +775,8 @@ const SubmitPart = ({
 					<div className="flex justify-between items-start text-gray-600">
 						<span>Phí khám bệnh</span>
 						<span className="font-medium text-gray-900 shrink-0">
-							{data.examinationFee.toLocaleString()}đ
-						</span>
+          {data.examinationFee.toLocaleString()}đ
+         </span>
 					</div>
 				</div>
 				<div>
@@ -850,8 +893,8 @@ const SubmitPart = ({
 				<div className="flex justify-between items-center text-base font-bold bg-[#A6CF52]/10 p-4 rounded-md mb-4">
 					<span className="text-gray-800">Thành tiền:</span>
 					<span className="text-xl text-[#A6CF52]">
-						{totalAmount.toLocaleString()} đ
-					</span>
+         {totalAmount.toLocaleString()} đ
+        </span>
 				</div>
 				<div className="flex flex-col gap-3">
 					<Button

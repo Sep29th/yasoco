@@ -436,7 +436,7 @@ export default function ExaminationDetailModalButton({
 													)}
 												</div>
 											</div>
-											{examination.examinationFee && (
+											{examination.examinationFee !== null && examination.examinationFee > 0 && (
 												<div className="mt-4">
 													<h4 className="font-semibold text-gray-700 mb-2 border-b border-dashed pb-1">
 														Khám
