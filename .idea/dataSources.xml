@@ -8,22 +8,22 @@
       <jdbc-url>jdbc:postgresql://127.0.0.1:5432/yasoco</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="Neon" uuid="3132b252-0218-4b62-b792-577bbb9a1d58">
+    <data-source source="LOCAL" name="Production" uuid="60e170a8-41c3-44dc-b376-54cf8e55f2a2">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://ep-frosty-frog-a1h6f7vi-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require&amp;channel_binding=require</jdbc-url>
+      <jdbc-url>jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="Staging" uuid="30aabc6e-d5ba-49df-b769-91c5fffc4b40">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://ep-winter-surf-a16555i5.ap-southeast-1.aws.neon.tech:5432/neondb</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
       <driver-properties>
         <property name="sslmode" value="require" />
       </driver-properties>
-    </data-source>
-    <data-source source="LOCAL" name="Supabase" uuid="49a79731-b239-4b7f-a062-760b4555b966">
-      <driver-ref>postgresql</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres</jdbc-url>
-      <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>
 </project>
