@@ -3,6 +3,7 @@ export interface RevenueStats {
 	totalServiceFee: number;
 	totalDiscount: number;
 	totalRevenue: number;
+	invoiceCount: number;
 }
 
 export interface HourlyBreakdown extends RevenueStats {

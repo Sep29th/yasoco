@@ -14,35 +14,43 @@ import { RevenueChart } from "./_component/revenue-chart";
 import { DateFilter } from "./_component/date-filter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, Activity, Tag } from "lucide-react";
+import { DollarSign, Activity, Tag, FileText } from "lucide-react";
 import { requireAuth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+
 type ViewMode = "day" | "month" | "year";
+
 const formatCurrency = (amount: number) => {
 	return new Intl.NumberFormat("vi-VN", {
 		style: "currency",
 		currency: "VND",
 	}).format(amount);
 };
+
 export default async function AnalyzePage({
-	searchParams,
-}: {
+																						searchParams,
+																					}: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
 	const auth = await requireAuth();
 	if (!auth.permissions.includes("invoice:read")) redirect("/admin/forbidden");
+
 	const params = await searchParams;
 	const view = (params.view as ViewMode) || "day";
 	const now = new Date();
 	const dateParam = typeof params.date === "string" ? params.date : null;
 	const targetDate = dateParam ? new Date(dateParam) : now;
+
 	const currentDateStr = targetDate.toLocaleDateString("en-CA", {
 		timeZone: "Asia/Ho_Chi_Minh",
 	});
+
 	const currentYear = targetDate.getFullYear();
 	const currentMonth = targetDate.getMonth() + 1;
+
 	let data: AnalysisData;
 	let title = "";
+
 	if (view === "year") {
 		data = (await getRevenueByYear(currentYear)) as YearAnalysisData;
 		title = `Báo cáo Năm ${currentYear}`;
@@ -62,7 +70,9 @@ export default async function AnalyzePage({
 		});
 		title = `Báo cáo Ngày ${dateDisplay}`;
 	}
+
 	const { stats, breakdown } = data;
+
 	return (
 		<div className="p-6 max-w-7xl mx-auto space-y-6 bg-gray-50/50 min-h-screen font-sans">
 			<div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b pb-6">
@@ -78,6 +88,7 @@ export default async function AnalyzePage({
 					<DateFilter key={view} currentDate={targetDate} view={view} />
 				</div>
 			</div>
+
 			<Tabs defaultValue={view} className="w-full">
 				<TabsList className="grid w-full max-w-[400px] grid-cols-3">
 					<TabsTrigger value="day" asChild>
@@ -91,7 +102,8 @@ export default async function AnalyzePage({
 					</TabsTrigger>
 				</TabsList>
 			</Tabs>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
 				<Card className="border-l-4 border-l-[#A6CF52] shadow-sm">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium text-muted-foreground">
@@ -144,7 +156,21 @@ export default async function AnalyzePage({
 						</div>
 					</CardContent>
 				</Card>
+				<Card className="shadow-sm">
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium text-muted-foreground">
+							Số Hóa Đơn
+						</CardTitle>
+						<FileText className="h-4 w-4 text-blue-500" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold text-gray-900">
+							{stats.invoiceCount}
+						</div>
+					</CardContent>
+				</Card>
 			</div>
+
 			<RevenueChart data={breakdown} view={view} />
 		</div>
 	);

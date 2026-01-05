@@ -121,6 +121,7 @@ export default async function ExaminePage({searchParams}: PropsType) {
 					date: examination?.date || new Date(),
 				}}
 				returnTo={returnTo}
+				isReReceive={isReReceive}
 			/>
 		</div>
 	);

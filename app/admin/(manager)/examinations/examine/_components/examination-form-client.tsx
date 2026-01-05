@@ -76,12 +76,14 @@ type PropsType = {
 		date: Date;
 	};
 	returnTo: string;
+	isReReceive: boolean;
 };
 
 export default function ExaminationFormClient({
 																								initialFormValue,
 																								data,
 																								returnTo,
+																								isReReceive
 																							}: PropsType) {
 	const needToBackStatusRef = useRef(true);
 	const needToSaveFormValueRef = useRef(true)
@@ -111,7 +113,7 @@ export default function ExaminationFormClient({
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(schema),
-		defaultValues: {
+		defaultValues: (!isReReceive) ? {
 			parentName: initialFormValue.parentName || "",
 			address: initialFormValue.address || "",
 			parentPhone: initialFormValue.parentPhone || "",
@@ -127,14 +129,30 @@ export default function ExaminationFormClient({
 			note: initialFormValue.note || undefined,
 			discounts: initialFormValue.discounts || [],
 			...parsedData,
+		} : {
+			parentName: initialFormValue.parentName || "",
+			address: initialFormValue.address || "",
+			parentPhone: initialFormValue.parentPhone || "",
+			kidName: initialFormValue.kidName || "",
+			kidGender: initialFormValue.kidGender === false ? "female" : "male",
+			kidBirthDate: initialFormValue.kidBirthDate || new Date(),
+			kidWeight: initialFormValue.kidWeight || 0,
+			medicalHistory: initialFormValue.medicalHistory || undefined,
+			symptoms: initialFormValue.symptoms || undefined,
+			diagnose: initialFormValue.diagnose || undefined,
+			services: initialFormValue.services || [],
+			medicines: initialFormValue.medicines || [],
+			note: initialFormValue.note || undefined,
+			discounts: initialFormValue.discounts || [],
 		},
 	});
 
 	useEffect(() => {
 		return () => {
 			if (typeof window !== "undefined") {
-				if (needToSaveFormValueRef.current) sessionStorage.setItem(STORAGE_KEY, JSON.stringify(form.getValues()));
-				else {
+				if (needToSaveFormValueRef.current) {
+					if (!isReReceive) sessionStorage.setItem(STORAGE_KEY, JSON.stringify(form.getValues()));
+				} else {
 					sessionStorage.removeItem(STORAGE_KEY);
 					needToSaveFormValueRef.current = true;
 				}
@@ -271,7 +289,6 @@ export default function ExaminationFormClient({
             <span className="font-semibold text-xl mb-4 block border-b pb-2 shrink-0">
               Thông tin cơ bản
             </span>
-						{/* ... Rest of your UI code remains exactly the same ... */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
 							<div className="space-y-1">
 								<span className="text-xs text-muted-foreground">Trạng thái</span>

@@ -1,8 +1,10 @@
 "use server";
 import prisma from "@/lib/prisma";
-import { cacheTag, cacheLife } from "next/cache";
+import {cacheTag, cacheLife} from "next/cache";
+
 const toNum = (val: bigint | number) => Number(val || 0);
 const ONE_WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
+
 function getVietnamRange(
 	type: "year" | "month" | "day",
 	year: number,
@@ -11,6 +13,7 @@ function getVietnamRange(
 ) {
 	let startVal = new Date();
 	let endVal = new Date();
+
 	if (type === "year") {
 		const startStr = `${year}-01-01T00:00:00+07:00`;
 		const endStr = `${year + 1}-01-01T00:00:00+07:00`;
@@ -33,18 +36,22 @@ function getVietnamRange(
 		startVal = new Date(`${vnDateStr}T00:00:00+07:00`);
 		endVal = new Date(startVal.getTime() + 24 * 60 * 60 * 1000);
 	}
-	return { start: startVal, end: endVal };
+
+	return {start: startVal, end: endVal};
 }
+
 async function fetchHourlyDataUTC(start: Date, end: Date) {
 	return prisma.$queryRaw<
 		Array<{
 			utcTime: Date;
+			countInvoice: bigint;
 			sumExamination: bigint;
 			sumService: bigint;
 			sumDiscount: bigint;
 		}>
 	>`
 		SELECT DATE_TRUNC('hour', "createdAt") as "utcTime",
+					 COUNT("id")                     as "countInvoice",
 					 SUM("examinationFee")           as "sumExamination",
 					 SUM("serviceFee")               as "sumService",
 					 SUM("totalDiscount")            as "sumDiscount"
@@ -54,122 +61,157 @@ async function fetchHourlyDataUTC(start: Date, end: Date) {
 		GROUP BY DATE_TRUNC('hour', "createdAt")
 	`;
 }
+
 const createStatsObject = () => ({
 	totalExaminationFee: 0,
 	totalServiceFee: 0,
 	totalDiscount: 0,
 	totalRevenue: 0,
+	invoiceCount: 0,
 });
+
 async function _getAnalyzeYear(year: number) {
-	const { start, end } = getVietnamRange("year", year);
+	const {start, end} = getVietnamRange("year", year);
 	const rawData = await fetchHourlyDataUTC(start, end);
-	const months = Array.from({ length: 12 }, (_, i) => ({
+
+	const months = Array.from({length: 12}, (_, i) => ({
 		month: i + 1,
 		...createStatsObject(),
 	}));
+
 	rawData.forEach((row) => {
 		const vnDate = new Date(
-			row.utcTime.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+			row.utcTime.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"})
 		);
 		const monthIndex = vnDate.getMonth();
+
 		const exam = toNum(row.sumExamination);
 		const service = toNum(row.sumService);
 		const discount = toNum(row.sumDiscount);
+		const count = toNum(row.countInvoice);
+
 		months[monthIndex].totalExaminationFee += exam;
 		months[monthIndex].totalServiceFee += service;
 		months[monthIndex].totalDiscount += discount;
 		months[monthIndex].totalRevenue += exam + service - discount;
+		months[monthIndex].invoiceCount += count;
 	});
+
 	const yearTotal = months.reduce(
 		(acc, curr) => ({
 			totalExaminationFee: acc.totalExaminationFee + curr.totalExaminationFee,
 			totalServiceFee: acc.totalServiceFee + curr.totalServiceFee,
 			totalDiscount: acc.totalDiscount + curr.totalDiscount,
 			totalRevenue: acc.totalRevenue + curr.totalRevenue,
+			invoiceCount: acc.invoiceCount + curr.invoiceCount,
 		}),
 		createStatsObject()
 	);
-	return { year, stats: yearTotal, breakdown: months };
+
+	return {year, stats: yearTotal, breakdown: months};
 }
+
 async function _getAnalyzeMonth(year: number, month: number) {
-	const { start, end } = getVietnamRange("month", year, month);
+	const {start, end} = getVietnamRange("month", year, month);
 	const rawData = await fetchHourlyDataUTC(start, end);
+
 	const daysInMonth = new Date(year, month, 0).getDate();
-	const days = Array.from({ length: daysInMonth }, (_, i) => ({
+	const days = Array.from({length: daysInMonth}, (_, i) => ({
 		day: i + 1,
 		...createStatsObject(),
 	}));
+
 	rawData.forEach((row) => {
 		const vnDate = new Date(
-			row.utcTime.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+			row.utcTime.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"})
 		);
 		const dayIndex = vnDate.getDate() - 1;
+
 		const exam = toNum(row.sumExamination);
 		const service = toNum(row.sumService);
 		const discount = toNum(row.sumDiscount);
+		const count = toNum(row.countInvoice);
+
 		if (days[dayIndex]) {
 			days[dayIndex].totalExaminationFee += exam;
 			days[dayIndex].totalServiceFee += service;
 			days[dayIndex].totalDiscount += discount;
 			days[dayIndex].totalRevenue += exam + service - discount;
+			days[dayIndex].invoiceCount += count;
 		}
 	});
+
 	const monthTotal = days.reduce(
 		(acc, curr) => ({
 			totalExaminationFee: acc.totalExaminationFee + curr.totalExaminationFee,
 			totalServiceFee: acc.totalServiceFee + curr.totalServiceFee,
 			totalDiscount: acc.totalDiscount + curr.totalDiscount,
 			totalRevenue: acc.totalRevenue + curr.totalRevenue,
+			invoiceCount: acc.invoiceCount + curr.invoiceCount,
 		}),
 		createStatsObject()
 	);
-	return { year, month, stats: monthTotal, breakdown: days };
+
+	return {year, month, stats: monthTotal, breakdown: days};
 }
+
 async function _getAnalyzeDay(date: Date) {
-	const { start, end } = getVietnamRange("day", 0, 0, date);
+	const {start, end} = getVietnamRange("day", 0, 0, date);
 	const rawData = await fetchHourlyDataUTC(start, end);
-	const hours = Array.from({ length: 24 }, (_, i) => ({
+
+	const hours = Array.from({length: 24}, (_, i) => ({
 		hour: i,
 		...createStatsObject(),
 	}));
+
 	rawData.forEach((row) => {
 		const vnDate = new Date(
-			row.utcTime.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+			row.utcTime.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"})
 		);
 		const hourIndex = vnDate.getHours();
+
 		const exam = toNum(row.sumExamination);
 		const service = toNum(row.sumService);
 		const discount = toNum(row.sumDiscount);
+		const count = toNum(row.countInvoice);
+
 		if (hours[hourIndex]) {
 			hours[hourIndex].totalExaminationFee += exam;
 			hours[hourIndex].totalServiceFee += service;
 			hours[hourIndex].totalDiscount += discount;
 			hours[hourIndex].totalRevenue += exam + service - discount;
+			hours[hourIndex].invoiceCount += count;
 		}
 	});
+
 	const dayTotal = hours.reduce(
 		(acc, curr) => ({
 			totalExaminationFee: acc.totalExaminationFee + curr.totalExaminationFee,
 			totalServiceFee: acc.totalServiceFee + curr.totalServiceFee,
 			totalDiscount: acc.totalDiscount + curr.totalDiscount,
 			totalRevenue: acc.totalRevenue + curr.totalRevenue,
+			invoiceCount: acc.invoiceCount + curr.invoiceCount,
 		}),
 		createStatsObject()
 	);
-	return { date: start, stats: dayTotal, breakdown: hours };
+
+	return {date: start, stats: dayTotal, breakdown: hours};
 }
+
 async function cacheAnalyzeYear(year: number) {
 	"use cache";
 	cacheTag(`analyze-year-${year}`);
-	cacheLife({ stale: ONE_WEEK_IN_SECONDS, revalidate: ONE_WEEK_IN_SECONDS });
+	cacheLife({stale: ONE_WEEK_IN_SECONDS, revalidate: ONE_WEEK_IN_SECONDS});
 	return await _getAnalyzeYear(year);
 }
+
 async function cacheAnalyzeMonth(year: number, month: number) {
 	"use cache";
 	cacheTag(`analyze-month-${year}-${month}`);
-	cacheLife({ stale: ONE_WEEK_IN_SECONDS, revalidate: ONE_WEEK_IN_SECONDS });
+	cacheLife({stale: ONE_WEEK_IN_SECONDS, revalidate: ONE_WEEK_IN_SECONDS});
 	return await _getAnalyzeMonth(year, month);
 }
+
 async function cacheAnalyzeDay(date: Date) {
 	"use cache";
 	const d = new Date(date);
@@ -177,9 +219,10 @@ async function cacheAnalyzeDay(date: Date) {
 		timeZone: "Asia/Ho_Chi_Minh",
 	});
 	cacheTag(`analyze-day-${dateKey}`);
-	cacheLife({ stale: ONE_WEEK_IN_SECONDS, revalidate: ONE_WEEK_IN_SECONDS });
+	cacheLife({stale: ONE_WEEK_IN_SECONDS, revalidate: ONE_WEEK_IN_SECONDS});
 	return await _getAnalyzeDay(date);
 }
+
 export async function getRevenueByYear(year: number) {
 	const currentYear = new Date().getFullYear();
 	if (year < currentYear) {
@@ -187,17 +230,20 @@ export async function getRevenueByYear(year: number) {
 	}
 	return await _getAnalyzeYear(year);
 }
+
 export async function getRevenueByMonth(year: number, month: number) {
 	const now = new Date();
 	const currentYear = now.getFullYear();
 	const currentMonth = now.getMonth() + 1;
 	const isPastMonth =
 		year < currentYear || (year === currentYear && month < currentMonth);
+
 	if (isPastMonth) {
 		return await cacheAnalyzeMonth(year, month);
 	}
 	return await _getAnalyzeMonth(year, month);
 }
+
 export async function getRevenueByDay(date: Date) {
 	const inputDate = new Date(date);
 	const inputStr = inputDate.toLocaleDateString("en-CA", {
@@ -206,6 +252,7 @@ export async function getRevenueByDay(date: Date) {
 	const todayStr = new Date().toLocaleDateString("en-CA", {
 		timeZone: "Asia/Ho_Chi_Minh",
 	});
+
 	if (inputStr < todayStr) {
 		return await cacheAnalyzeDay(date);
 	}
