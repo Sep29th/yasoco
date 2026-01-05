@@ -489,7 +489,7 @@ export default function ExaminationDetailModalButton({
 												)}
 											</div>
 										</div>
-										{examination.examinationFee &&
+										{examination.examinationFee !== null &&
 											examination.status === "COMPLETED" && (
 												<div className="p-6 pt-2 shrink-0 border-t">
 													<div className="flex justify-between items-start text-gray-600 mt-2">
