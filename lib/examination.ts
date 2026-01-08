@@ -159,6 +159,8 @@ export async function getAllPastExaminationsByPhone(phone: string) {
 			id: true,
 			parentName: true,
 			parentPhone: true,
+			services: true,
+			diagnose: true,
 			kidName: true,
 			date: true,
 			status: true,
