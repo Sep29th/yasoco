@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { createMedicineAction } from "../_actions/create";
-import { updateMedicineAction } from "../_actions/update";
+import {useState} from "react";
+import {useRouter} from "next/navigation";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {Label} from "@/components/ui/label";
+import {createMedicineAction} from "../_actions/create";
+import {updateMedicineAction} from "../_actions/update";
 
 type PropsType = {
 	mode: "create" | "edit";
@@ -19,10 +19,10 @@ type PropsType = {
 };
 
 export default function MedicineFormClient({
-	mode,
-	medicineId,
-	initialValues,
-}: PropsType) {
+																						 mode,
+																						 medicineId,
+																						 initialValues,
+																					 }: PropsType) {
 	const router = useRouter();
 	const [name, setName] = useState(initialValues.name);
 	const [unit, setUnit] = useState(initialValues.unit);
@@ -55,22 +55,23 @@ export default function MedicineFormClient({
 
 		setLoading(true);
 		try {
+			let result;
 			if (mode === "create") {
-				await createMedicineAction({
+				result = await createMedicineAction({
 					name: trimmedName,
 					unit: trimmedUnit,
 					description: trimmedDescription,
 				});
 			} else {
-				await updateMedicineAction({
+				result = await updateMedicineAction({
 					id: medicineId as string,
 					name: trimmedName,
 					unit: trimmedUnit,
 					description: trimmedDescription,
 				});
 			}
-
-			router.push("/admin/medicines");
+			if (!result.ok) setError(result.message ?? "Có lỗi xảy ra");
+			else router.push("/admin/medicines");
 		} catch (err) {
 			const message = err instanceof Error ? err.message : String(err);
 			setError(message || "Có lỗi xảy ra");
@@ -134,8 +135,8 @@ export default function MedicineFormClient({
 								? "Đang tạo..."
 								: "Đang cập nhật..."
 							: mode === "create"
-							? "Tạo thuốc"
-							: "Cập nhật"}
+								? "Tạo thuốc"
+								: "Cập nhật"}
 					</Button>
 					<Button
 						type="button"
