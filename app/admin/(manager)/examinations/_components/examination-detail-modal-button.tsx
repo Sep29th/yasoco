@@ -437,7 +437,7 @@ export default function ExaminationDetailModalButton({
 																	</span>
 																</div>
 																<span className="font-medium text-red-600 shrink-0">
-																	{examination.examinationFee &&
+																	{examination.examinationFee !== null && examination.examinationFee > 0 &&
 																		(d.type === "percent"
 																			? `-${(
 																				(subTotal * d.value) /
