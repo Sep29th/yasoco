@@ -1,8 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 import {Toaster} from "sonner";
+
+export const viewport: Viewport = {
+  themeColor: "#A6CF52"
+}
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +22,10 @@ export const metadata: Metadata = {
   title: "Phòng khám Yasoco | Chuyên khoa nhi",
   description:
     "Phòng khám Yasoco - Nơi chăm sóc sức khỏe toàn diện cho trẻ em.",
+  manifest: "/manifest.json",
+  icons: {
+    apple: "/icon-192x192.png"
+  }
 };
 
 export default function RootLayout({
