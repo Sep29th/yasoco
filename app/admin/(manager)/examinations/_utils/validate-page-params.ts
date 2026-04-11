@@ -9,7 +9,7 @@ const normalizePhone = (raw?: string): string => {
 };
 export function validatePageParams(params: PageParams) {
 	const mode: "all" | "day" =
-		params.mode === "all" || params.mode === "day" ? params.mode : "day";
+		params.mode === "all" || params.mode === "day" ? params.mode : "all";
 	const page: `${number}` =
 		params.page && /^\d+$/.test(params.page) ? params.page : "1";
 	let date: DateString;
