@@ -2,7 +2,7 @@
 import prisma from "@/lib/prisma";
 import {cacheTag, cacheLife} from "next/cache";
 
-const toNum = (val: bigint | number) => Number(val || 0);
+const toNum = (val: bigint | number | null) => Number(val || 0);
 const ONE_WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
 
 function getVietnamRange(
@@ -40,26 +40,102 @@ function getVietnamRange(
 	return {start: startVal, end: endVal};
 }
 
-async function fetchHourlyDataUTC(start: Date, end: Date) {
-	return prisma.$queryRaw<
-		Array<{
-			utcTime: Date;
-			countInvoice: bigint;
-			sumExamination: bigint;
-			sumService: bigint;
-			sumDiscount: bigint;
-		}>
-	>`
-		SELECT DATE_TRUNC('hour', "createdAt") as "utcTime",
-					 COUNT("id")                     as "countInvoice",
-					 SUM("examinationFee")           as "sumExamination",
-					 SUM("serviceFee")               as "sumService",
-					 SUM("totalDiscount")            as "sumDiscount"
-		FROM "Invoice"
-		WHERE "createdAt" >= ${start}
-			AND "createdAt" < ${end}
-		GROUP BY DATE_TRUNC('hour', "createdAt")
+// Danh sách ID dịch vụ khám, ngăn cách bởi dấu phẩy: "id1,id2,id3"
+const EXAMINATION_SERVICE_IDS = (process.env.EXAMINATION_SERVICE_ID ?? "")
+	.split(",")
+	.map((id) => id.trim())
+	.filter(Boolean);
+
+type InvoiceHourlyRow = {
+	utcTime: Date;
+	countInvoice: bigint;
+	sumExamination: bigint;
+	sumService: bigint;
+	sumDiscount: bigint;
+};
+
+type ExamServiceHourlyRow = { utcTime: Date; sumExamination: bigint };
+
+type HourlyRow = {
+	utcTime: Date;
+	countInvoice: number;
+	sumExamination: number;
+	sumService: number;
+	sumDiscount: number;
+};
+
+async function fetchExaminationServiceHourlyUTC(
+	start: Date,
+	end: Date
+): Promise<ExamServiceHourlyRow[]> {
+	if (EXAMINATION_SERVICE_IDS.length === 0) return [];
+	return prisma.$queryRaw<ExamServiceHourlyRow[]>`
+		SELECT DATE_TRUNC('hour', (e."paidBy" ->> 'at')::timestamptz) as "utcTime",
+					 ROUND(SUM((s ->> 'price')::numeric * (s ->> 'quantity')::numeric))::bigint as "sumExamination"
+		FROM "Examination" e,
+				 jsonb_array_elements(e."services") s
+		WHERE e."status" = 'COMPLETED'
+			AND e."paidBy" IS NOT NULL
+			AND (e."paidBy" ->> 'at')::timestamptz >= ${start}
+			AND (e."paidBy" ->> 'at')::timestamptz < ${end}
+			AND s ->> 'id' = ANY(${EXAMINATION_SERVICE_IDS}::text[])
+		GROUP BY 1
 	`;
+}
+
+// Phí khám = phí khám cũ trên hóa đơn + các dịch vụ khám (EXAMINATION_SERVICE_ID).
+// Dịch vụ khám được trừ khỏi phí dịch vụ để tổng doanh thu không đổi.
+async function fetchHourlyDataUTC(
+	start: Date,
+	end: Date
+): Promise<HourlyRow[]> {
+	const [invoiceRows, examServiceRows] = await Promise.all([
+		prisma.$queryRaw<InvoiceHourlyRow[]>`
+			SELECT DATE_TRUNC('hour', "createdAt") as "utcTime",
+						 COUNT("id")                     as "countInvoice",
+						 SUM("examinationFee")           as "sumExamination",
+						 SUM("serviceFee")               as "sumService",
+						 SUM("totalDiscount")            as "sumDiscount"
+			FROM "Invoice"
+			WHERE "createdAt" >= ${start}
+				AND "createdAt" < ${end}
+			GROUP BY DATE_TRUNC('hour', "createdAt")
+		`,
+		fetchExaminationServiceHourlyUTC(start, end),
+	]);
+
+	const rows = new Map<number, HourlyRow>(
+		invoiceRows.map((row: InvoiceHourlyRow): [number, HourlyRow] => [
+			row.utcTime.getTime(),
+			{
+				utcTime: row.utcTime,
+				countInvoice: toNum(row.countInvoice),
+				sumExamination: toNum(row.sumExamination),
+				sumService: toNum(row.sumService),
+				sumDiscount: toNum(row.sumDiscount),
+			},
+		])
+	);
+
+	examServiceRows.forEach((row: ExamServiceHourlyRow) => {
+		const amount = toNum(row.sumExamination);
+		const key = row.utcTime.getTime();
+		const existing = rows.get(key);
+		if (existing) {
+			existing.sumExamination += amount;
+			existing.sumService -= amount;
+		} else {
+			rows.set(key, {
+				utcTime: row.utcTime,
+				countInvoice: 0,
+				sumExamination: amount,
+				sumService: -amount,
+				sumDiscount: 0,
+			});
+		}
+	});
+
+	return Array.from(rows.values());
 }
 
 const createStatsObject = () => ({
@@ -85,10 +161,10 @@ async function _getAnalyzeYear(year: number) {
 		);
 		const monthIndex = vnDate.getMonth();
 
-		const exam = toNum(row.sumExamination);
-		const service = toNum(row.sumService);
-		const discount = toNum(row.sumDiscount);
-		const count = toNum(row.countInvoice);
+		const exam = row.sumExamination;
+		const service = row.sumService;
+		const discount = row.sumDiscount;
+		const count = row.countInvoice;
 
 		months[monthIndex].totalExaminationFee += exam;
 		months[monthIndex].totalServiceFee += service;
@@ -127,10 +203,10 @@ async function _getAnalyzeMonth(year: number, month: number) {
 		);
 		const dayIndex = vnDate.getDate() - 1;
 
-		const exam = toNum(row.sumExamination);
-		const service = toNum(row.sumService);
-		const discount = toNum(row.sumDiscount);
-		const count = toNum(row.countInvoice);
+		const exam = row.sumExamination;
+		const service = row.sumService;
+		const discount = row.sumDiscount;
+		const count = row.countInvoice;
 
 		if (days[dayIndex]) {
 			days[dayIndex].totalExaminationFee += exam;
@@ -170,10 +246,10 @@ async function _getAnalyzeDay(date: Date) {
 		);
 		const hourIndex = vnDate.getHours();
 
-		const exam = toNum(row.sumExamination);
-		const service = toNum(row.sumService);
-		const discount = toNum(row.sumDiscount);
-		const count = toNum(row.countInvoice);
+		const exam = row.sumExamination;
+		const service = row.sumService;
+		const discount = row.sumDiscount;
+		const count = row.countInvoice;
 
 		if (hours[hourIndex]) {
 			hours[hourIndex].totalExaminationFee += exam;
