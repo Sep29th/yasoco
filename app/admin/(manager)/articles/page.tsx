@@ -66,8 +66,8 @@ const validateSearchParams = (params: Partial<SearchParams>) => {
 	) {
 		value.groupByTagId = params.groupByTagId;
 	}
-	if (params.search && /^[\p{L}\p{N}\s]+$/u.test(params.search)) {
-		value.search = params.search;
+	if (typeof params.search === "string" && params.search.trim()) {
+		value.search = params.search.trim();
 	}
 	return value;
 };

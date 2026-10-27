@@ -1,4 +1,5 @@
-import { PrismaClient } from "./generated/prisma";
+import { Prisma, PrismaClient } from "./generated/prisma";
+import { buildSearchSql, parseSearchKeyword } from "./search";
 
 const prismaClient = new PrismaClient(
 	process.env.NODE_ENV === "development" ? { log: ["query"] } : undefined
@@ -66,10 +67,15 @@ const extendedPrismaClient = prismaClient.$extends({
 
 		medicine: {
 			async search(keyword: string, page = 1, pageSize = 10) {
-				const q = (keyword || "").trim();
-				if (!q) return { total: 0, medicines: [] };
+				const parsed = parseSearchKeyword(keyword);
+				if (!parsed) return { total: 0, medicines: [] };
 
 				const offset = (page - 1) * pageSize;
+				const { where, score } = buildSearchSql(parsed, {
+					tsv: Prisma.sql`"searchTsv"`,
+					primary: Prisma.sql`"name"`,
+					others: [Prisma.sql`COALESCE("description", '')`],
+				});
 
 				const results: {
 					id: string;
@@ -78,24 +84,15 @@ const extendedPrismaClient = prismaClient.$extends({
 					unit: string;
 					createdAt: Date;
 					updatedAt: Date;
-					rank: number;
+					score: number;
 					total_count: bigint;
 				}[] = await prismaClient.$queryRaw`
-          SELECT id, name, description, unit, "createdAt",
-						ts_rank(
-							"searchTsv",
-							websearch_to_tsquery(
-								'pg_catalog.simple',
-								f_unaccent(${q})
-							)
-						) AS rank,
+          SELECT id, name, description, unit, "createdAt", "updatedAt",
+						${score} AS score,
 						COUNT(*) OVER() AS total_count
 					FROM "Medicine"
-					WHERE "searchTsv" @@ websearch_to_tsquery(
-						'pg_catalog.simple',
-						f_unaccent(${q})
-					)
-					ORDER BY rank DESC
+					WHERE ${where}
+					ORDER BY score DESC, name ASC
 					LIMIT ${pageSize}
 					OFFSET ${offset};
         `;
